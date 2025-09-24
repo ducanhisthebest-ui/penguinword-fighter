@@ -1,0 +1,1950 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Penguin Clash Ultimate - Learning Language Version</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        /* CSS không thay đổi */
+        :root {
+            --color-bg: #1a1a1a;
+            --color-surface: #282828;
+            --color-border: #444;
+            --color-text: #eee;
+            --color-ally: #3498db;
+            --color-enemy: #e74c3c;
+            --color-mana: #9b59b6;
+            --player-w-desktop: 90px;
+            --player-h-desktop: 100px;
+            --color-primary: #3498db;
+            --color-secondary: #2ecc71;
+            --color-accent: #e74c3c;
+            --color-light: #ecf0f1;
+            --color-dark: #2c3e50;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: var(--color-bg);
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', system-ui, sans-serif;
+        }
+        
+        /* Màn hình xoay ngang */
+        #rotate-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--color-dark);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--color-light);
+            padding: 20px;
+        }
+        
+        #rotate-screen.show {
+            display: flex;
+        }
+        
+        .rotate-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: rotate 2s infinite linear;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(90deg); }
+        }
+        
+        .rotate-text {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .rotate-subtext {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        /* Màn hình overlay */
+        .screen-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-image: url('assets/forest.png');
+            background-size: cover;
+            background-position: center;
+            z-index: 200;
+            text-align: center;
+            padding: 20px;
+            color: var(--color-light);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+        .screen-overlay::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(44, 62, 80, 0.7);
+            z-index: -1;
+        }
+
+        #start-screen { 
+            display: flex;
+        }
+
+        #input-screen { 
+            display: none;
+        }
+        
+        #question-screen {
+            display: none;
+        }
+
+        #pause-screen { 
+            z-index: 300;
+            display: none;
+        }
+
+        #pvp-screen {
+            display: none;
+        }
+
+        .penguin-gif {
+            width: 120px;
+            height: 120px;
+            margin: 15px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .screen-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--color-light);
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+            background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .screen-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--color-light);
+        }
+
+        textarea {
+            width: 300px; height: 200px;
+            margin: 8px; font-size: 16px; padding: 12px;
+            background: rgba(255, 255, 255, 0.9); 
+            color: var(--color-dark); 
+            border: 2px solid var(--color-primary);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            margin: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 140px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--color-primary), #2980b9);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, var(--color-secondary), #27ae60);
+            color: white;
+        }
+
+        .btn-accent {
+            background: linear-gradient(45deg, var(--color-accent), #c0392b);
+            color: white;
+        }
+
+        .btn-light {
+            background: linear-gradient(45deg, var(--color-light), #bdc3c7);
+            color: var(--color-dark);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .input-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .input-box label {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: var(--color-light);
+        }
+
+        #game-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #ui-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(52, 73, 94, 0.9);
+            border-bottom: 3px solid var(--color-primary);
+            position: relative;
+            z-index: 100;
+            color: var(--color-light);
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Xóa thanh mana */
+        #score, #level {
+            font-weight: bold;
+            font-size: 18px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        #command-buttons {
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            z-index: 100;
+            display: flex;
+            gap: 8px;
+        }
+        .command-btn {
+            width: 60px;
+            height: 60px;
+            border: 3px solid var(--color-border);
+            background-color: var(--color-surface);
+            background-size: 60%;
+            background-repeat: no-repeat;
+            background-position: center;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .command-btn:hover { 
+            background-color: #3c3c3c; 
+            transform: scale(1.05);
+        }
+        .command-btn.active { 
+            border-color: var(--color-ally); 
+            box-shadow: 0 0 15px var(--color-ally);
+        }
+
+        #arena {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+            cursor: grab;
+        }
+        #arena:active { cursor: grabbing; }
+        #world {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: #102b1f url('assets/forest.png') repeat-x center center;
+            background-size: auto 100%;
+            will-change: transform;
+        }
+
+        .base-container {
+            position: absolute;
+            bottom: 30px;
+            width: 200px;
+            height: 250px;
+            z-index: 10;
+        }
+        #base-ally-container { left: 50px; }
+        #base-enemy-container { right: 50px; }
+        .base-statue {
+            width: 100%;
+            height: 100%;
+            background: url('assets/penguintuong.png') no-repeat center bottom;
+            background-size: contain;
+        }
+        #base-enemy-container .base-statue { transform: scaleX(-1); }
+        .base-health-bar {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 20px;
+            background-color: #333;
+            border-radius: 10px;
+            border: 2px solid #555;
+            display: flex;
+            padding: 2px;
+            gap: 2px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        .health-segment {
+            flex-grow: 1;
+            height: 100%;
+            background-color: var(--color-ally);
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        #base-enemy-container .health-segment { background-color: var(--color-enemy); }
+        .health-segment.empty { background-color: transparent; }
+
+        .base-container.hit-flash .base-statue {
+            animation: flash-base 0.3s ease-in-out;
+        }
+        @keyframes flash-base {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(2.5) drop-shadow(0 0 10px white); }
+        }
+
+        /* ===== BẮT ĐẦU THAY ĐỔI: CSS CHO GIAO DIỆN ĐIỀU KHIỂN MỚI ===== */
+        #controls {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            justify-content: center;
+            background: rgba(52, 73, 94, 0.9);
+            border-top: 3px solid var(--color-primary);
+            flex-shrink: 0;
+            height: 160px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+        }
+        .unit-spawn-btn {
+            width: 120px;
+            height: 100%;
+            border-radius: 15px;
+            border: 3px solid var(--color-border);
+            background: linear-gradient(145deg, #3c3c3c, #2c2c2c);
+            color: var(--color-text);
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 5px;
+            font-size: 16px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .unit-spawn-btn:hover { 
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            border-color: var(--color-primary);
+        }
+        .unit-spawn-btn:disabled { 
+            background: #222; 
+            color: #666; 
+            cursor: not-allowed;
+            border-color: #333;
+            transform: none;
+            box-shadow: none;
+        }
+         .unit-spawn-btn:disabled .unit-image {
+            filter: grayscale(80%);
+            opacity: 0.5;
+        }
+
+        .unit-image {
+            width: 100%;
+            height: 60%;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center bottom;
+            border-radius: 10px;
+        }
+        .unit-name {
+            line-height: 1;
+            font-size: 1.1rem;
+            color: var(--color-light);
+        }
+        .cost { 
+            font-size: 12px; 
+            opacity: 0.9; 
+            line-height: 1;
+            color: var(--color-secondary);
+        }
+        /* ===== KẾT THÚC THAY ĐỔI ===== */
+
+        #entities {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+        .unit {
+            position: absolute;
+            left: 0;
+            top: 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            will-change: transform;
+            z-index: 20;
+            width: var(--player-w-desktop);
+            height: var(--player-h-desktop);
+            transition: opacity 0.5s;
+        }
+        .unit .skin {
+            width: 100%;
+            height: 100%;
+            background-repeat: no-repeat;
+            background-position: center bottom;
+            background-size: contain;
+        }
+        .unit.enemy .skin { transform: scaleX(-1); }
+
+        .health {
+            position: absolute;
+            top: -12px;
+            left: 0;
+            right: 0;
+            height: 6px;
+            margin: 0 auto;
+            width: 70%;
+            background: rgba(0,0,0,0.6);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .health-bar-fill { height: 100%; transition: width 0.3s; }
+        .health-bar-fill.ally { background: var(--color-ally); }
+        .health-bar-fill.enemy { background: var(--color-enemy); }
+
+        #overlay {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-content: center;
+            text-align: center;
+            gap: 16px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s, pointer-events 0.3s;
+            z-index: 200;
+        }
+        #overlay.hidden { opacity: 0; pointer-events: none; }
+        #result-text {
+            font-size: 48px;
+            color: #fff;
+            text-shadow: 0 3px 10px #000;
+            font-weight: bold;
+        }
+        #overlay button {
+            padding: 12px 24px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            border: none;
+            background: var(--color-ally);
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        #overlay button:hover { background: #2980b9; }
+
+        .question-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            border: 5px solid var(--color-primary);
+        }
+
+        #answer-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: 3px solid var(--color-primary);
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+            font-family: inherit;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Nút tạm dừng */
+        #pause-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 100;
+            background: rgba(52, 73, 94, 0.9);
+            color: var(--color-light);
+            border: 3px solid var(--color-primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #pause-btn:hover {
+            transform: scale(1.1);
+            background: var(--color-primary);
+        }
+        
+        /* Ẩn các màn hình khi cần xoay màn hình */
+        body.portrait .screen-overlay,
+        body.portrait #game-container {
+            display: none !important;
+        }
+
+        /* CSS cho màn hình PVP */
+        #pvp-note {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+            max-width: 400px;
+        }
+
+        #player-name {
+            width: 250px;
+            padding: 10px;
+            font-size: 1.1rem;
+            border: 2px solid var(--color-primary);
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--color-dark);
+        }
+
+        #opponents-list {
+            width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .opponent-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .opponent-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        #waiting-status {
+            font-size: 1.2rem;
+            margin: 15px 0;
+            color: var(--color-secondary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Màn hình yêu cầu xoay ngang -->
+    <div id="rotate-screen">
+        <div class="rotate-icon">🔄</div>
+        <div class="rotate-text">Vui lòng xoay ngang màn hình</div>
+        <div class="rotate-subtext">Trò chơi yêu cầu màn hình ngang để có trải nghiệm tốt nhất</div>
+    </div>
+
+    <!-- Màn hình chào -->
+    <div id="start-screen" class="screen-overlay">
+        <h1 class="screen-title">Penguin Clash Ultimate</h1>
+        <h2 class="screen-subtitle">Learning Language Version</h2>
+        <img id="penguin-hi-start" class="penguin-gif" src="assets/witchwaiting.gif" alt="Penguin Hi"/>
+        <div class="button-group">
+            <button id="btn-to-input" class="btn btn-primary">Bắt đầu</button>
+            <button id="btn-pvp" class="btn btn-secondary">PVP</button>
+            <button id="btn-show-guide" class="btn btn-accent">Hướng dẫn</button>
+        </div>
+    </div>
+
+    <!-- Màn hình nhập liệu -->
+    <div id="input-screen" class="screen-overlay">
+        <h2 class="screen-title">Nhập Chướng ngại &amp; Đáp án</h2>
+        <img id="penguin-hi-input" class="penguin-gif" src="assets/shieldwaiting.gif" alt="Penguin Hi"/>
+        <div class="input-group">
+            <div class="input-box">
+                <label for="obstacles">Chướng ngại:</label>
+                <textarea id="obstacles" placeholder="mother&#10;father&#10;猫&#10;chó"></textarea>
+            </div>
+            <div class="input-box">
+                <label for="answers">Đáp án:</label>
+                <textarea id="answers" placeholder="mẹ&#10;ちち&#10;ねこ&#10;犬"></textarea>
+            </div>
+        </div>
+        <div class="button-group">
+            <button id="btn-clear" class="btn btn-light">Xóa tất cả</button>
+            <button id="btn-back" class="btn btn-accent">Quay lại</button>
+            <button id="btn-confirm" class="btn btn-primary">Xác nhận & Chơi</button>
+        </div>
+    </div>
+
+    <!-- Màn hình PVP -->
+    <div id="pvp-screen" class="screen-overlay">
+        <h2 class="screen-title">Chế độ PVP</h2>
+        <img id="penguin-pvp" class="penguin-gif" src="assets/spearwaiting.gif" alt="Penguin PVP"/>
+        
+        <div id="pvp-note">
+            <strong>Lưu ý:</strong> Chỉ những người dùng chung 1 wifi mới có thể đấu với nhau và tìm thấy nhau.
+        </div>
+        
+        <input type="text" id="player-name" placeholder="Nhập tên của bạn" maxlength="20"/>
+        
+        <div id="waiting-status" style="display: none;">Đang chờ đối thủ...</div>
+        
+        <div id="opponents-list" style="display: none;">
+            <h3>Danh sách đối thủ:</h3>
+            <!-- Danh sách đối thủ sẽ được thêm động ở đây -->
+        </div>
+        
+        <div class="button-group">
+            <button id="btn-back-from-pvp" class="btn btn-accent">Quay lại</button>
+            <button id="btn-find-opponents" class="btn btn-primary">Tìm đối thủ</button>
+            <button id="btn-start-pvp" class="btn btn-secondary" style="display: none;">Bắt đầu</button>
+        </div>
+    </div>
+
+    <!-- Màn hình câu hỏi khi thả quân -->
+    <div id="question-screen" class="screen-overlay">
+        <div class="question-container">
+            <h2 class="screen-subtitle">Chướng ngại</h2>
+            <img id="penguin-question" class="penguin-gif" src="assets/witchwaiting.gif" alt="Penguin Question"/>
+            <div id="question-text" style="font-size: 1.5rem; margin: 15px 0; color: var(--color-dark);"></div>
+            <input type="text" id="answer-input" placeholder="Nhập đáp án"/>
+            <div class="button-group">
+                <button id="btn-submit-answer" class="btn btn-primary">Gửi</button>
+                <button id="btn-cancel-question" class="btn btn-accent">Hủy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Màn hình tạm dừng -->
+    <div id="pause-screen" class="screen-overlay">
+        <div class="question-container">
+            <h2 class="screen-title">TRÒ CHƠI ĐÃ DỪNG</h2>
+            <img id="penguin-pause" class="penguin-gif" src="assets/witchwaiting.gif" alt="Penguin Waiting"/>
+            <div class="button-group">
+                <button id="btn-resume" class="btn btn-primary">Chơi tiếp</button>
+                <button id="btn-quit" class="btn btn-accent">Quay về</button>
+                <button id="btn-restart-pause" class="btn btn-secondary">Chơi lại</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game container -->
+    <div id="game-container" style="display: none;">
+        <div id="ui-top">
+            <div id="level">Màn: 1</div>
+            <div id="score">Điểm: 0</div>
+        </div>
+        <button id="pause-btn" title="Tạm dừng">⏸️</button>
+        <div id="command-buttons">
+            <button id="defend-btn" class="command-btn" title="Phòng thủ" style="background-image: url('assets/defend_icon.png');"></button>
+            <button id="attack-btn" class="command-btn" title="Tấn công" style="background-image: url('assets/attack_icon.png');"></button>
+        </div>
+        <div id="arena">
+            <div id="world">
+                <div id="base-ally-container" class="base-container">
+                    <div class="base-health-bar" id="ally-base-health"></div>
+                    <div class="base-statue"></div>
+                </div>
+                <div id="base-enemy-container" class="base-container">
+                    <div class="base-health-bar" id="enemy-base-health"></div>
+                    <div class="base-statue"></div>
+                </div>
+                <div id="entities"></div>
+            </div>
+        </div>
+        <div id="controls">
+            <button class="unit-spawn-btn" data-spawn="shield">
+                <div class="unit-image" style="background-image: url('assets/shieldwaiting.gif');"></div>
+                <span class="unit-name">Shield</span>
+                <span class="cost">(Trả lời câu hỏi)</span>
+            </button>
+            <button class="unit-spawn-btn" data-spawn="sword">
+                <div class="unit-image" style="background-image: url('assets/swordwaiting.gif');"></div>
+                <span class="unit-name">Sword</span>
+                <span class="cost">(Trả lời câu hỏi)</span>
+            </button>
+            <button class="unit-spawn-btn" data-spawn="spear">
+                <div class="unit-image" style="background-image: url('assets/spearwaiting.gif');"></div>
+                <span class="unit-name">Spear</span>
+                <span class="cost">(Trả lời câu hỏi)</span>
+            </button>
+            <button class="unit-spawn-btn" data-spawn="witch">
+                <div class="unit-image" style="background-image: url('assets/witchwaiting.gif');"></div>
+                <span class="unit-name">Witch</span>
+                <span class="cost">(Trả lời câu hỏi)</span>
+            </button>
+        </div>
+        <div id="overlay" class="hidden">
+            <h2 id="result-text"></h2>
+            <button id="restart-btn" style="display: none;">Chơi Lại Màn Này</button>
+            <button id="next-level-btn" style="display: none;">Màn Tiếp Theo</button>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const CONFIG = {
+        RPS: { shield: 'spear', spear: 'sword', sword: 'shield' },
+        UNIT_STATS: {
+            shield: { 
+                hp: 5, speed: 80, damage: 1, 
+                skins: {
+                    run: 'assets/shieldrun.gif',
+                    fight: 'assets/shieldkill.gif',
+                    dead: 'assets/shielddead.gif'
+                } 
+            },
+            sword:  { 
+                hp: 5, speed: 80, damage: 1, 
+                skins: {
+                    run: 'assets/swordrun.gif',
+                    fight: 'assets/swordkill.gif',
+                    dead: 'assets/sworddead.gif'
+                }
+            },
+            spear:  { 
+                hp: 5, speed: 80, damage: 1, 
+                skins: {
+                    run: 'assets/spearrun.gif',
+                    fight: 'assets/spearkill.gif',
+                    dead: 'assets/speardead.gif'
+                }
+            },
+            witch:  { 
+                hp: 4, speed: 70, damage: 0, 
+                skins: {
+                    run: 'assets/witchrun.gif',
+                    heal: 'assets/witchkill.gif',
+                    dead: 'assets/witchdead.gif'
+                }
+            },
+        },
+        BASE_HP: 10,
+        CONTACT_TICK: 2000, 
+        HEAL_RANGE: 250,
+        HEAL_COOLDOWN: 1500,
+        WORLD_WIDTH_MULTIPLIER: 3,
+        HITBOX_WIDTH: 45,
+        AGGRO_RADIUS: 250,
+        ENEMY_LEVEL_MULTIPLIER: 1.2,
+        WITCH_FLEE_RADIUS: 150,
+        WITCH_SAFE_DISTANCE: 100,
+        BASE_ATTACK_RANGE: 100,
+        DEFENSE_FORMATION: {
+            startOffset: 150,
+            typeSpacing: 60,
+            unitSpacing: -15,
+            order: ['shield', 'sword', 'spear', 'witch']
+        }
+    };
+    
+    // DOM elements
+    const dom = {
+        startScreen: document.getElementById('start-screen'),
+        inputScreen: document.getElementById('input-screen'),
+        questionScreen: document.getElementById('question-screen'),
+        pauseScreen: document.getElementById('pause-screen'),
+        pvpScreen: document.getElementById('pvp-screen'),
+        gameContainer: document.getElementById('game-container'),
+        arena: document.getElementById('arena'),
+        world: document.getElementById('world'),
+        entities: document.getElementById('entities'),
+        score: document.getElementById('score'),
+        level: document.getElementById('level'),
+        overlay: document.getElementById('overlay'),
+        resultText: document.getElementById('result-text'),
+        restartBtn: document.getElementById('restart-btn'),
+        nextLevelBtn: document.getElementById('next-level-btn'),
+        spawnButtons: document.querySelectorAll('#controls [data-spawn]'),
+        attackBtn: document.getElementById('attack-btn'),
+        defendBtn: document.getElementById('defend-btn'),
+        allyBaseHealth: document.getElementById('ally-base-health'),
+        enemyBaseHealth: document.getElementById('enemy-base-health'),
+        allyBaseContainer: document.getElementById('base-ally-container'),
+        enemyBaseContainer: document.getElementById('base-enemy-container'),
+        questionText: document.getElementById('question-text'),
+        answerInput: document.getElementById('answer-input'),
+        btnSubmitAnswer: document.getElementById('btn-submit-answer'),
+        btnCancelQuestion: document.getElementById('btn-cancel-question'),
+        penguinQuestion: document.getElementById('penguin-question'),
+        pauseBtn: document.getElementById('pause-btn'),
+        rotateScreen: document.getElementById('rotate-screen'),
+        playerName: document.getElementById('player-name'),
+        opponentsList: document.getElementById('opponents-list'),
+        waitingStatus: document.getElementById('waiting-status'),
+        btnFindOpponents: document.getElementById('btn-find-opponents'),
+        btnStartPvp: document.getElementById('btn-start-pvp')
+    };
+    
+    // Global variables
+    let state = {};
+    let userQuestions = [];
+    let currentSpawningUnitType = null;
+    let currentQuestionIndex = 0;
+    let isPaused = false;
+    
+    // PVP variables
+    let peer = null;
+    let currentConnection = null;
+    let isHost = false;
+    let playerId = null;
+    let opponents = [];
+    let pvpGameStarted = false;
+
+    // Hàm kiểm tra hướng màn hình
+    function checkOrientation() {
+        const isPortrait = window.innerHeight > window.innerWidth;
+        const isMobile = window.innerWidth <= 768;
+        
+        if ((isPortrait && isMobile) || window.screen?.orientation?.type?.includes('portrait')) {
+            // Hiển thị màn hình xoay ngang
+            dom.rotateScreen.classList.add('show');
+            document.body.classList.add('portrait');
+        } else {
+            // Ẩn màn hình xoay ngang
+            dom.rotateScreen.classList.remove('show');
+            document.body.classList.remove('portrait');
+        }
+    }
+
+    // Kiểm tra hướng màn hình khi trang được tải
+    checkOrientation();
+    
+    // Kiểm tra hướng màn hình khi thay đổi kích thước
+    window.addEventListener('resize', checkOrientation);
+    
+    // Kiểm tra hướng màn hình khi xoay thiết bị
+    window.addEventListener('orientationchange', checkOrientation);
+
+    // ========== CẢI TIẾN CƠ CHẾ CHỌN MỤC TIÊU ==========
+    
+    // Hàm tìm mục tiêu theo thang ưu tiên
+    function findPriorityTarget(unit, enemies) {
+        if (!enemies || enemies.length === 0) return null;
+        
+        // Tạo danh sách mục tiêu có điểm ưu tiên
+        const targetsWithPriority = [];
+        
+        for (const enemy of enemies) {
+            if (!enemy.alive) continue;
+            
+            const distance = Math.hypot(unit.x - enemy.x, unit.y - enemy.y);
+            if (distance > CONFIG.AGGRO_RADIUS) continue;
+            
+            let priority = 0;
+            
+            // Ưu tiên 1: Trụ (base) - không áp dụng ở đây vì trụ không phải là unit
+            
+            // Ưu tiên 2: Quân địch chưa bị quân đồng minh tấn công
+            const isBeingAttacked = state.units.some(u => 
+                u.side === 'ally' && u.targetUnit === enemy && u.alive
+            );
+            
+            if (!isBeingAttacked) {
+                priority = 4; // Điểm cao nhất
+            } 
+            // Ưu tiên 3: Quân địch đang bị tấn công bởi quân đồng minh
+            else if (isBeingAttacked) {
+                priority = 3;
+            }
+            
+            // Ưu tiên 4: Quân địch đang lao vào quân đồng minh
+            if (enemy.targetUnit && enemy.targetUnit.side === 'ally') {
+                priority = Math.max(priority, 2); // Không cao hơn ưu tiên 2 và 3
+            }
+            
+            // Thêm vào danh sách với điểm ưu tiên và khoảng cách
+            targetsWithPriority.push({
+                enemy,
+                priority,
+                distance
+            });
+        }
+        
+        // Sắp xếp theo ưu tiên (cao đến thấp) và khoảng cách (gần đến xa)
+        targetsWithPriority.sort((a, b) => {
+            if (a.priority !== b.priority) {
+                return b.priority - a.priority; // Ưu tiên cao hơn trước
+            }
+            return a.distance - b.distance; // Gần hơn trước
+        });
+        
+        // Trả về mục tiêu ưu tiên cao nhất
+        return targetsWithPriority.length > 0 ? targetsWithPriority[0].enemy : null;
+    }
+
+    function initState(level, isPvp = false, isPlayerAlly = true) {
+        const viewportWidth = dom.arena.clientWidth;
+        state = {
+            units: [],
+            gameStatus: 'playing',
+            lastTimestamp: 0,
+            score: 0,
+            currentLevel: level,
+            viewportWidth: viewportWidth,
+            worldWidth: viewportWidth * CONFIG.WORLD_WIDTH_MULTIPLIER,
+            groundLevel: dom.arena.clientHeight * 0.85,
+            cameraX: 0,
+            armyStance: 'defend',
+            allyBaseHp: CONFIG.BASE_HP,
+            enemyBaseHp: CONFIG.BASE_HP,
+            isDragging: false,
+            dragStartX: 0,
+            cameraStartDragX: 0,
+            animationFrameId: null,
+            allyBasePosition: 250,
+            enemyBasePosition: (viewportWidth * CONFIG.WORLD_WIDTH_MULTIPLIER) - 250,
+            enemyWaveTimers: [],
+            currentWave: 0,
+            totalWaves: 2,
+            isPvp: isPvp,
+            isPlayerAlly: isPlayerAlly
+        };
+        dom.world.style.width = `${state.worldWidth}px`;
+        renderBaseHealth();
+        dom.defendBtn.classList.add('active');
+        dom.attackBtn.classList.remove('active');
+        updateUI();
+    }
+
+    function spriteFor(type, state) {
+        const unitSkins = CONFIG.UNIT_STATS[type].skins;
+        return unitSkins[state] || unitSkins['run'];
+    }
+
+    function setSprite(u, state) {
+        if (!u.alive && state !== 'dead') return;
+        if (u.visualState === state) return;
+        u.visualState = state;
+        u.skin.style.backgroundImage = `url('${spriteFor(u.type, state)}')`;
+    }
+
+    function spawnUnit({type, side}) {
+        const stats = CONFIG.UNIT_STATS[type];
+        if (!stats) return;
+
+        const id = crypto.randomUUID();
+        const el = document.createElement('div');
+        el.className = `unit ${side}`;
+        const skin = document.createElement('div');
+        skin.className = 'skin';
+        el.appendChild(skin);
+
+        const healthBar = document.createElement('div');
+        healthBar.className = 'health';
+        el.appendChild(healthBar);
+        dom.entities.appendChild(el);
+        
+        const levelMultiplier = side === 'enemy' ? Math.pow(CONFIG.ENEMY_LEVEL_MULTIPLIER, state.currentLevel - 1) : 1;
+        const speedBonus = side === 'enemy' ? Math.floor((state.currentLevel - 1) / 2) : 0;
+        
+        const u = {
+            id, type, side,
+            hp: Math.ceil(stats.hp * levelMultiplier),
+            maxHp: Math.ceil(stats.hp * levelMultiplier),
+            speed: stats.speed + speedBonus,
+            damage: Math.ceil(stats.damage * levelMultiplier),
+            alive: true,
+            state: (side === 'ally' && state.armyStance === 'defend') ? 'defending' : 'run',
+            visualState: '',
+            el, skin, healthBar,
+            contactTimer: 0,
+            healTimer: 0,
+            x: side === 'ally' ? state.allyBasePosition : state.enemyBasePosition,
+            y: state.groundLevel + (Math.random() - 0.5) * 80,
+            targetUnit: null,
+            targetPos: null,
+        };
+        setSprite(u, 'run');
+        updateHealthBar(u);
+        state.units.push(u);
+        
+        // Gửi thông tin unit mới cho đối thủ trong chế độ PVP
+        if (state.isPvp && currentConnection) {
+            currentConnection.send({
+                type: 'spawnUnit',
+                unitType: type,
+                unitSide: side,
+                unitId: id
+            });
+        }
+    }
+    
+    function damage(u, amount) {
+        if (!u.alive) return;
+        u.hp = Math.max(0, u.hp - amount);
+        updateHealthBar(u);
+        
+        if (u.hp === 0) {
+            u.alive = false;
+            u.state = 'dead';
+            setSprite(u, 'dead');
+            if (u.side === 'enemy') {
+                state.score += 10 * state.currentLevel;
+            }
+            setTimeout(() => {
+                if (u.el && u.el.parentNode) {
+                    u.el.remove();
+                }
+                state.units = state.units.filter(unit => unit.id !== u.id);
+            }, 2000);
+        }
+        
+        // Gửi thông tin damage cho đối thủ trong chế độ PVP
+        if (state.isPvp && currentConnection) {
+            currentConnection.send({
+                type: 'unitDamage',
+                unitId: u.id,
+                damage: amount,
+                newHp: u.hp
+            });
+        }
+    }
+
+    function updateHealthBar(u) {
+        const percentage = (u.hp / u.maxHp) * 100;
+        u.healthBar.innerHTML = `<div style="width: ${percentage}%;" class="health-bar-fill ${u.side}"></div>`;
+    }
+    
+    function renderBaseHealth() {
+        const renderBar = (hp) => Array.from({length: CONFIG.BASE_HP}, (_, i) => 
+            `<div class="health-segment ${i >= hp ? 'empty' : ''}"></div>`
+        ).join('');
+        dom.allyBaseHealth.innerHTML = renderBar(state.allyBaseHp);
+        dom.enemyBaseHealth.innerHTML = renderBar(state.enemyBaseHp);
+    }
+
+    function tick(timestamp) {
+        if (isPaused) return;
+        
+        state.animationFrameId = requestAnimationFrame(tick);
+        if (state.gameStatus !== 'playing') return;
+        if (!state.lastTimestamp) state.lastTimestamp = timestamp;
+        const dt = timestamp - state.lastTimestamp;
+        state.lastTimestamp = timestamp;
+
+        updateUnitLogic(state.units, dt);
+        checkWinLose();
+        updateCamera();
+        renderUnits(state.units);
+        updateUI();
+    }
+    
+    function updateUnitLogic(units, dt) {
+        const aliveUnits = units.filter(u => u.alive);
+        const allies = aliveUnits.filter(u => u.side === 'ally');
+        const enemies = aliveUnits.filter(u => u.side === 'enemy');
+        const enemiesBySide = { ally: enemies, enemy: allies };
+
+        if (state.armyStance === 'defend') {
+            updateDefensiveFormation(allies);
+        }
+
+        aliveUnits.forEach(u => {
+            if (u.type === 'witch') {
+                updateWitch(u, dt, aliveUnits);
+                return;
+            }
+
+            if (u.side === 'ally' && (u.state === 'defending' || u.state === 'returning')) {
+                // Sử dụng cơ chế chọn mục tiêu mới
+                const enemy = findPriorityTarget(u, enemiesBySide[u.side]);
+                if (enemy) {
+                    u.targetUnit = enemy;
+                    u.state = 'chasing';
+                    u.targetPos = null;
+                } else {
+                    moveToTargetPosition(u, dt);
+                    setSprite(u, 'run');
+                }
+                return;
+            }
+
+            if (!u.targetUnit || !u.targetUnit.alive) {
+                // Sử dụng cơ chế chọn mục tiêu mới cho ally, cũ cho enemy
+                if (u.side === 'ally') {
+                    u.targetUnit = findPriorityTarget(u, enemiesBySide[u.side]);
+                } else {
+                    // Enemy vẫn sử dụng cơ chế cũ
+                    u.targetUnit = findClosestEnemy(u, enemiesBySide[u.side]);
+                }
+                u.state = u.targetUnit ? 'chasing' : 'run';
+            }
+            
+            const enemyBaseX = u.side === 'ally' ? state.enemyBasePosition : state.allyBasePosition;
+            const isNearBase = Math.abs(u.x - enemyBaseX) < CONFIG.BASE_ATTACK_RANGE;
+            
+            if (isNearBase && !u.targetUnit) {
+                u.state = 'fight_base';
+                u.x = enemyBaseX;
+            }
+
+            switch (u.state) {
+                case 'run':
+                    moveTowardsBase(u, dt);
+                    setSprite(u, 'run');
+                    break;
+                case 'chasing':
+                    chaseTarget(u, dt);
+                    setSprite(u, 'run');
+                    break;
+                case 'fight':
+                    fightTarget(u, dt);
+                    setSprite(u, 'fight');
+                    break;
+                case 'fight_base':
+                    fightBase(u, dt);
+                    setSprite(u, 'fight');
+                    break;
+            }
+        });
+    }
+
+    function updateDefensiveFormation(allies) {
+        const formationCounts = {};
+        const { startOffset, typeSpacing, unitSpacing, order } = CONFIG.DEFENSE_FORMATION;
+
+        allies.forEach(u => {
+            const typeIndex = order.indexOf(u.type);
+            if (typeIndex === -1) return;
+
+            if (!formationCounts[u.type]) {
+                formationCounts[u.type] = 0;
+            }
+            
+            const targetX = state.allyBasePosition + startOffset + (typeIndex * typeSpacing);
+            const targetY = state.groundLevel + (formationCounts[u.type] * unitSpacing);
+            
+            u.targetPos = { x: targetX, y: targetY };
+
+            formationCounts[u.type]++;
+        });
+    }
+
+    function moveToTargetPosition(u, dt) {
+        if (!u.targetPos) {
+            setSprite(u, 'run');
+            return;
+        }
+
+        const dist = Math.hypot(u.targetPos.x - u.x, u.targetPos.y - u.y);
+        const speed = u.speed * (dt / 1000);
+        
+        if (dist < 5) {
+            u.state = 'defending';
+            setSprite(u, 'run');
+        } else {
+            const angle = Math.atan2(u.targetPos.y - u.y, u.targetPos.x - u.x);
+            u.x += Math.cos(angle) * speed;
+            u.y += Math.sin(angle) * speed;
+            setSprite(u, 'run');
+        }
+    }
+    
+    function updateWitch(u, dt, allUnits) {
+        const allies = allUnits.filter(v => v.side === u.side && v.id !== u.id);
+        const enemies = allUnits.filter(v => v.side !== u.side);
+        const moveDir = u.side === 'ally' ? 1 : -1;
+        
+        const pursuer = enemies.find(e => Math.hypot(u.x - e.x, u.y - e.y) < CONFIG.WITCH_FLEE_RADIUS);
+        if (pursuer) {
+            u.state = 'fleeing';
+            const angle = Math.atan2(u.y - pursuer.y, u.x - pursuer.x);
+            u.x += Math.cos(angle) * u.speed * (dt / 1000);
+            u.y += Math.sin(angle) * u.speed * (dt / 1000);
+            setSprite(u, 'run');
+            u.x = Math.max(0, Math.min(state.worldWidth, u.x));
+            u.y = Math.max(state.groundLevel - 40, Math.min(state.groundLevel + 40, u.y));
+            return;
+        }
+
+        u.healTimer += dt;
+        if (u.healTimer >= CONFIG.HEAL_COOLDOWN) {
+            u.healTimer = 0;
+            const potentialTargets = allies.filter(ally =>
+                ally.hp < ally.maxHp && Math.abs(u.x - ally.x) <= CONFIG.HEAL_RANGE
+            );
+            if (u.hp < u.maxHp) {
+                potentialTargets.push(u);
+            }
+
+            if (potentialTargets.length > 0) {
+                potentialTargets.sort((a, b) => {
+                    const healthPctDiff = (a.hp / a.maxHp) - (b.hp / b.maxHp);
+                    if (healthPctDiff !== 0) return healthPctDiff;
+                    return Math.abs(u.x - a.x) - Math.abs(u.x - b.x);
+                });
+                const healTarget = potentialTargets[0];
+
+                setSprite(u, 'heal');
+                healTarget.hp = Math.min(healTarget.maxHp, healTarget.hp + 1);
+                updateHealthBar(healTarget);
+                setTimeout(() => { if (u.alive && u.visualState === 'heal') setSprite(u, 'run'); }, 1000);
+            }
+        }
+        
+        if (u.visualState === 'heal') return;
+
+        if (u.side === 'ally' && state.armyStance === 'defend') {
+            u.state = 'defending';
+            moveToTargetPosition(u, dt);
+        } else {
+            const frontlineAllies = allies.filter(ally => (moveDir === 1 ? ally.x > u.x : ally.x < u.x));
+            if (frontlineAllies.length > 0) {
+                const frontlineX = frontlineAllies.reduce((acc, ally) => (moveDir === 1 ? Math.max(acc, ally.x) : Math.min(acc, ally.x)), u.x);
+                const targetX = frontlineX - (moveDir * CONFIG.WITCH_SAFE_DISTANCE);
+
+                if (Math.abs(u.x - targetX) > 10) {
+                    u.x += Math.sign(targetX - u.x) * u.speed * (dt / 1000);
+                    setSprite(u, 'run');
+                } else {
+                     u.state = 'idle';
+                     setSprite(u, 'run');
+                }
+            } else {
+                const enemyBaseX = state.enemyBasePosition;
+                 if (Math.abs(u.x - enemyBaseX) > CONFIG.WITCH_SAFE_DISTANCE + 100) {
+                    u.x += moveDir * u.speed * (dt / 1000);
+                    setSprite(u, 'run');
+                } else {
+                     u.state = 'idle';
+                     setSprite(u, 'run');
+                }
+            }
+        }
+    }
+    
+    // Hàm tìm kẻ địch gần nhất (giữ nguyên cho enemy)
+    function findClosestEnemy(unit, enemies) {
+        let closestEnemy = null;
+        let minDistance = CONFIG.AGGRO_RADIUS;
+        for (const enemy of enemies) {
+            const distance = Math.hypot(unit.x - enemy.x, unit.y - enemy.y);
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestEnemy = enemy;
+            }
+        }
+        return closestEnemy;
+    }
+
+    function moveTowardsBase(u, dt) {
+        if (!u.alive) return;
+        const moveDir = u.side === 'ally' ? 1 : -1;
+        const enemyBaseX = u.side === 'ally' ? state.enemyBasePosition : state.allyBasePosition;
+        const isNearBase = Math.abs(u.x - enemyBaseX) < CONFIG.BASE_ATTACK_RANGE;
+        if (isNearBase) {
+            u.state = 'fight_base';
+            u.x = enemyBaseX;
+        } else {
+            u.x += moveDir * u.speed * (dt / 1000);
+        }
+    }
+
+    function chaseTarget(u, dt) {
+        if (!u.alive) return;
+        if (!u.targetUnit || !u.targetUnit.alive) {
+            if (u.side === 'ally' && state.armyStance === 'defend') {
+                u.state = 'returning';
+            } else {
+                u.state = 'run';
+            }
+            u.targetUnit = null;
+            return;
+        }
+        const dist = Math.hypot(u.targetUnit.x - u.x, u.targetUnit.y - u.y);
+        const speed = u.speed * (dt / 1000);
+        if (dist <= CONFIG.HITBOX_WIDTH) {
+            u.state = 'fight';
+        } else {
+            const angle = Math.atan2(u.targetUnit.y - u.y, u.targetUnit.x - u.x);
+            u.x += Math.cos(angle) * speed;
+            u.y += Math.sin(angle) * speed;
+        }
+    }
+    
+    function fightTarget(u, dt) {
+        if (!u.alive) return;
+        if (!u.targetUnit || !u.targetUnit.alive) {
+            if (u.side === 'ally' && state.armyStance === 'defend') {
+                u.state = 'returning';
+            } else {
+                u.state = 'run';
+            }
+            u.targetUnit = null;
+            u.contactTimer = 0;
+            return;
+        }
+        if (Math.hypot(u.targetUnit.x - u.x, u.targetUnit.y - u.y) > CONFIG.HITBOX_WIDTH + 10) {
+             u.state = 'chasing';
+             return;
+        }
+        u.contactTimer += dt;
+        if (u.contactTimer >= CONFIG.CONTACT_TICK) {
+            u.contactTimer -= CONFIG.CONTACT_TICK;
+            resolveRPS(u, u.targetUnit);
+        }
+    }
+    
+    function resolveRPS(a, b) {
+        if (!a.alive || !b.alive) return;
+        const isCounter = (unitA, unitB) => CONFIG.RPS[unitA.type] === unitB.type;
+        if (a.type === 'witch' && b.type !== 'witch') {
+            damage(a, 3);
+            return;
+        }
+        if (b.type === 'witch' && a.type !== 'witch') {
+            damage(b, 3);
+            return;
+        }
+        if (isCounter(a, b)) {
+            damage(a, 1);
+            damage(b, 3);
+        } else if (isCounter(b, a)) {
+            damage(b, 1);
+            damage(a, 3);
+        } else {
+            damage(a, 2);
+            damage(b, 2);
+        }
+    }
+
+    function fightBase(u, dt) {
+        if (!u.alive) return;
+        u.contactTimer += dt;
+        if (u.contactTimer >= CONFIG.CONTACT_TICK) {
+            u.contactTimer -= CONFIG.CONTACT_TICK;
+            if (u.side === 'ally') {
+                state.enemyBaseHp = Math.max(0, state.enemyBaseHp - 1);
+                flashBase(dom.enemyBaseContainer);
+                
+                // Gửi thông tin damage base cho đối thủ trong chế độ PVP
+                if (state.isPvp && currentConnection) {
+                    currentConnection.send({
+                        type: 'baseDamage',
+                        baseSide: 'enemy',
+                        newHp: state.enemyBaseHp
+                    });
+                }
+            } else {
+                state.allyBaseHp = Math.max(0, state.allyBaseHp - 1);
+                flashBase(dom.allyBaseContainer);
+                
+                // Gửi thông tin damage base cho đối thủ trong chế độ PVP
+                if (state.isPvp && currentConnection) {
+                    currentConnection.send({
+                        type: 'baseDamage',
+                        baseSide: 'ally',
+                        newHp: state.allyBaseHp
+                    });
+                }
+            }
+            renderBaseHealth();
+        }
+    }
+    
+    function flashBase(baseElement) {
+        baseElement.classList.add('hit-flash');
+        baseElement.addEventListener('animationend', () => {
+            baseElement.classList.remove('hit-flash');
+        }, { once: true });
+    }
+
+    function checkWinLose() {
+        if (state.gameStatus !== 'playing') return;
+        if (state.allyBaseHp <= 0) endGame(false);
+        if (state.enemyBaseHp <= 0) endGame(true);
+    }
+
+    function endGame(isVictory) {
+        if (state.gameStatus !== 'playing') return;
+        state.gameStatus = isVictory ? 'won' : 'lost';
+        dom.overlay.classList.remove('hidden');
+        dom.resultText.textContent = isVictory ? `CHIẾN THẮNG!` : `THẤT BẠI!`;
+        
+        // Gửi kết quả game cho đối thủ trong chế độ PVP
+        if (state.isPvp && currentConnection) {
+            currentConnection.send({
+                type: 'gameEnd',
+                victory: isVictory
+            });
+        }
+        
+        setTimeout(() => {
+            if (isVictory) {
+                startLevel(state.currentLevel + 1);
+            } else {
+                startLevel(state.currentLevel);
+            }
+        }, 2000);
+        
+        if (state.animationFrameId) {
+            cancelAnimationFrame(state.animationFrameId);
+            state.animationFrameId = null;
+        }
+    }
+
+    function renderUnits(units) {
+        units.forEach(u => {
+            u.el.style.transform = `translate(${u.x - (u.el.clientWidth / 2)}px, ${u.y - u.el.clientHeight}px)`;
+        });
+    }
+
+    function updateCamera() {
+        const camX = Math.max(0, Math.min(state.worldWidth - state.viewportWidth, state.cameraX));
+        dom.world.style.transform = `translateX(${-camX}px)`;
+    }
+    
+    function updateUI() {
+        dom.score.textContent = `Điểm: ${state.score}`;
+        dom.level.textContent = `Màn: ${state.currentLevel}`;
+    }
+
+    function generateEnemyWave(level) {
+        state.enemyWaveTimers.forEach(timer => clearTimeout(timer));
+        state.enemyWaveTimers = [];
+        state.currentWave = 0;
+        
+        const unitTypes = ['shield', 'sword', 'spear'];
+        const totalEnemies = 8 + (level - 1) * 2;
+        const enemiesPerWave = Math.floor(totalEnemies / 2);
+        
+        const baseWaveDelay = 60000;
+        const waveDelayReduction = Math.floor((level - 1) / 4) * 2000;
+        const waveDelay = baseWaveDelay - waveDelayReduction;
+        
+        state.currentWave = 1;
+        for (let i = 0; i < enemiesPerWave; i++) {
+            const timer = setTimeout(() => {
+                if (state.gameStatus !== 'playing') return;
+                const type = unitTypes[Math.floor(Math.random() * unitTypes.length)];
+                spawnUnit({type, side: 'enemy'});
+            }, i * 2000 + 1000);
+            state.enemyWaveTimers.push(timer);
+        }
+        
+        const secondWaveTimer = setTimeout(() => {
+            if (state.gameStatus !== 'playing') return;
+            state.currentWave = 2;
+            for (let i = 0; i < enemiesPerWave; i++) {
+                const timer = setTimeout(() => {
+                    if (state.gameStatus !== 'playing') return;
+                    const type = unitTypes[Math.floor(Math.random() * unitTypes.length)];
+                    spawnUnit({type, side: 'enemy'});
+                }, i * 2000 + 1000);
+                state.enemyWaveTimers.push(timer);
+            }
+            
+            if (level >= 3 && Math.random() > 0.5) {
+                const witchTimer = setTimeout(() => {
+                    if (state.gameStatus !== 'playing') return;
+                    spawnUnit({type: 'witch', side: 'enemy'});
+                }, enemiesPerWave * 2000 + 1000);
+                state.enemyWaveTimers.push(witchTimer);
+            }
+        }, waveDelay);
+        
+        state.enemyWaveTimers.push(secondWaveTimer);
+    }
+
+    function startLevel(level = 1, isPvp = false, isPlayerAlly = true) {
+        if (state.animationFrameId) {
+            cancelAnimationFrame(state.animationFrameId);
+        }
+        dom.entities.innerHTML = '';
+        dom.overlay.classList.add('hidden');
+        initState(level, isPvp, isPlayerAlly);
+        
+        if (!isPvp) {
+            generateEnemyWave(level);
+        }
+        
+        state.lastTimestamp = performance.now();
+        tick(performance.now());
+    }
+
+    function showQuestionScreen(unitType) {
+        if (userQuestions.length === 0) {
+            alert('Vui lòng nhập câu hỏi và đáp án trước khi chơi!');
+            return;
+        }
+        
+        currentSpawningUnitType = unitType;
+        currentQuestionIndex = Math.floor(Math.random() * userQuestions.length);
+        const question = userQuestions[currentQuestionIndex];
+        
+        dom.questionText.textContent = question.question;
+        dom.answerInput.value = '';
+        dom.penguinQuestion.src = 'assets/' + unitType + 'waiting.gif';
+        
+        dom.questionScreen.style.display = 'flex';
+        dom.answerInput.focus();
+    }
+
+    function hideQuestionScreen() {
+        dom.questionScreen.style.display = 'none';
+        currentSpawningUnitType = null;
+    }
+
+    function pauseGame() {
+        if (state.gameStatus !== 'playing') return;
+        isPaused = true;
+        dom.pauseScreen.style.display = 'flex';
+        if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
+    }
+
+    function resumeGame() {
+        isPaused = false;
+        dom.pauseScreen.style.display = 'none';
+        state.lastTimestamp = performance.now();
+        tick(performance.now());
+    }
+
+    // ========== CHẾ ĐỘ PVP ==========
+    
+    function initializePvp() {
+        // Tạo ID ngẫu nhiên cho người chơi
+        playerId = 'player_' + Math.random().toString(36).substr(2, 9);
+        
+        // Khởi tạo PeerJS
+        peer = new Peer(playerId, {
+            host: '0.peerjs.com',
+            port: 443,
+            path: '/',
+            debug: 3
+        });
+        
+        peer.on('open', (id) => {
+            console.log('PeerJS connected with ID: ', id);
+            dom.btnFindOpponents.disabled = false;
+            dom.btnFindOpponents.textContent = 'Tìm đối thủ';
+        });
+        
+        peer.on('connection', (conn) => {
+            console.log('Kết nối đến từ: ', conn.peer);
+            handleConnection(conn);
+        });
+        
+        peer.on('error', (err) => {
+            console.error('PeerJS error: ', err);
+            alert('Lỗi kết nối PVP: ' + err.message);
+        });
+    }
+    
+    function findOpponents() {
+        const playerName = dom.playerName.value.trim();
+        if (!playerName) {
+            alert('Vui lòng nhập tên của bạn!');
+            return;
+        }
+        
+        dom.btnFindOpponents.disabled = true;
+        dom.btnFindOpponents.textContent = 'Đang tìm...';
+        dom.waitingStatus.style.display = 'block';
+        
+        // Trong thực tế, bạn cần một signaling server để tìm đối thủ
+        // Ở đây tôi sẽ mô phỏng việc tìm đối thủ sau 3 giây
+        setTimeout(() => {
+            // Giả lập danh sách đối thủ (trong thực tế, đây sẽ là dữ liệu từ server)
+            opponents = [
+                { id: 'opponent_1', name: 'Người chơi 1' },
+                { id: 'opponent_2', name: 'Người chơi 2' }
+            ];
+            
+            displayOpponentsList();
+            dom.waitingStatus.style.display = 'none';
+            dom.opponentsList.style.display = 'block';
+        }, 3000);
+    }
+    
+    function displayOpponentsList() {
+        dom.opponentsList.innerHTML = '<h3>Danh sách đối thủ:</h3>';
+        
+        if (opponents.length === 0) {
+            dom.opponentsList.innerHTML += '<p>Không có đối thủ nào</p>';
+            return;
+        }
+        
+        opponents.forEach(opponent => {
+            const opponentItem = document.createElement('div');
+            opponentItem.className = 'opponent-item';
+            opponentItem.textContent = opponent.name;
+            opponentItem.addEventListener('click', () => {
+                connectToOpponent(opponent.id);
+            });
+            dom.opponentsList.appendChild(opponentItem);
+        });
+    }
+    
+    function connectToOpponent(opponentId) {
+        const conn = peer.connect(opponentId);
+        handleConnection(conn);
+    }
+    
+    function handleConnection(conn) {
+        currentConnection = conn;
+        
+        conn.on('open', () => {
+            console.log('Kết nối thành công với: ', conn.peer);
+            dom.waitingStatus.textContent = 'Đã kết nối với đối thủ!';
+            dom.btnStartPvp.style.display = 'inline-block';
+            
+            // Gửi thông tin người chơi
+            conn.send({
+                type: 'playerInfo',
+                name: dom.playerName.value.trim(),
+                id: playerId
+            });
+        });
+        
+        conn.on('data', (data) => {
+            handlePvpData(data);
+        });
+        
+        conn.on('close', () => {
+            console.log('Kết nối đã đóng');
+            if (pvpGameStarted) {
+                alert('Đối thủ đã rời khỏi trò chơi!');
+                quitPvpGame();
+            }
+        });
+        
+        conn.on('error', (err) => {
+            console.error('Lỗi kết nối: ', err);
+        });
+    }
+    
+    function handlePvpData(data) {
+        switch (data.type) {
+            case 'playerInfo':
+                console.log('Thông tin đối thủ: ', data.name);
+                break;
+                
+            case 'startGame':
+                startPvpGame(false); // Người này là enemy (đỏ)
+                break;
+                
+            case 'spawnUnit':
+                spawnUnit({
+                    type: data.unitType,
+                    side: data.unitSide === 'ally' ? 'enemy' : 'ally'
+                });
+                break;
+                
+            case 'unitDamage':
+                const unit = state.units.find(u => u.id === data.unitId);
+                if (unit) {
+                    unit.hp = data.newHp;
+                    updateHealthBar(unit);
+                    if (unit.hp <= 0) {
+                        unit.alive = false;
+                        unit.state = 'dead';
+                        setSprite(unit, 'dead');
+                        setTimeout(() => {
+                            if (unit.el && unit.el.parentNode) {
+                                unit.el.remove();
+                            }
+                            state.units = state.units.filter(u => u.id !== data.unitId);
+                        }, 2000);
+                    }
+                }
+                break;
+                
+            case 'baseDamage':
+                if (data.baseSide === 'ally') {
+                    state.allyBaseHp = data.newHp;
+                } else {
+                    state.enemyBaseHp = data.newHp;
+                }
+                renderBaseHealth();
+                break;
+                
+            case 'gameEnd':
+                endGame(!data.victory); // Đảo ngược kết quả cho người chơi còn lại
+                break;
+        }
+    }
+    
+    function startPvpGame(isHostPlayer) {
+        pvpGameStarted = true;
+        isHost = isHostPlayer;
+        
+        dom.pvpScreen.style.display = 'none';
+        dom.gameContainer.style.display = 'flex';
+        
+        startLevel(1, true, isHostPlayer);
+        
+        // Nếu là host, thông báo cho đối thủ bắt đầu game
+        if (isHostPlayer && currentConnection) {
+            currentConnection.send({ type: 'startGame' });
+        }
+    }
+    
+    function quitPvpGame() {
+        pvpGameStarted = false;
+        if (currentConnection) {
+            currentConnection.close();
+            currentConnection = null;
+        }
+        
+        if (peer) {
+            peer.destroy();
+            peer = null;
+        }
+        
+        dom.gameContainer.style.display = 'none';
+        dom.pvpScreen.style.display = 'flex';
+        dom.waitingStatus.style.display = 'none';
+        dom.opponentsList.style.display = 'none';
+        dom.btnStartPvp.style.display = 'none';
+        dom.btnFindOpponents.disabled = false;
+        dom.btnFindOpponents.textContent = 'Tìm đối thủ';
+    }
+
+    function setupEventListeners() {
+        // Màn hình chào
+        document.getElementById('btn-to-input').addEventListener('click', () => {
+            dom.startScreen.style.display = 'none';
+            dom.inputScreen.style.display = 'flex';
+        });
+
+        document.getElementById('btn-pvp').addEventListener('click', () => {
+            dom.startScreen.style.display = 'none';
+            dom.pvpScreen.style.display = 'flex';
+            initializePvp();
+        });
+
+        document.getElementById('btn-show-guide').addEventListener('click', () => {
+            alert('Hướng dẫn:\n1. Nhập chướng ngại và đáp án\n2. Chọn quân để thả\n3. Trả lời câu hỏi đúng để thả quân\n4. Bảo vệ trụ và phá hủy trụ địch');
+        });
+
+        // Màn hình nhập liệu
+        document.getElementById('btn-back').addEventListener('click', () => {
+            dom.inputScreen.style.display = 'none';
+            dom.startScreen.style.display = 'flex';
+        });
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            document.getElementById('obstacles').value = '';
+            document.getElementById('answers').value = '';
+        });
+
+        document.getElementById('btn-confirm').addEventListener('click', () => {
+            const obstacles = document.getElementById('obstacles').value.trim().split('\n').filter(line => line);
+            const answers = document.getElementById('answers').value.trim().split('\n').filter(line => line);
+            
+            if (obstacles.length === 0 || obstacles.length !== answers.length) {
+                alert('Dữ liệu không hợp lệ! Vui lòng kiểm tra số lượng chướng ngại vật và đáp án.');
+                return;
+            }
+            
+            userQuestions = obstacles.map((q, i) => ({ question: q, answer: answers[i] }));
+            dom.inputScreen.style.display = 'none';
+            dom.gameContainer.style.display = 'flex';
+            startLevel(1);
+        });
+
+        // Màn hình PVP
+        document.getElementById('btn-back-from-pvp').addEventListener('click', () => {
+            quitPvpGame();
+            dom.pvpScreen.style.display = 'none';
+            dom.startScreen.style.display = 'flex';
+        });
+
+        dom.btnFindOpponents.addEventListener('click', findOpponents);
+        
+        dom.btnStartPvp.addEventListener('click', () => {
+            startPvpGame(true); // Người này là host (xanh)
+        });
+
+        // Màn hình câu hỏi
+        dom.btnSubmitAnswer.addEventListener('click', () => {
+            const userAnswer = dom.answerInput.value.trim();
+            const correctAnswer = userQuestions[currentQuestionIndex].answer;
+            
+            if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+                spawnUnit({type: currentSpawningUnitType, side: 'ally'});
+                hideQuestionScreen();
+            } else {
+                dom.penguinQuestion.src = 'assets/' + currentSpawningUnitType + 'ping.gif';
+                dom.answerInput.value = '';
+                setTimeout(() => {
+                    dom.penguinQuestion.src = 'assets/' + currentSpawningUnitType + 'waiting.gif';
+                }, 2000);
+            }
+        });
+
+        dom.btnCancelQuestion.addEventListener('click', () => {
+            hideQuestionScreen();
+        });
+
+        dom.answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                dom.btnSubmitAnswer.click();
+            }
+        });
+
+        // Nút thả quân
+        dom.spawnButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const unitType = btn.dataset.spawn;
+                showQuestionScreen(unitType);
+            });
+        });
+
+        // Nút tấn công/phòng thủ
+        dom.attackBtn.addEventListener('click', () => {
+            if (state.armyStance === 'attack') return;
+            state.armyStance = 'attack';
+            dom.attackBtn.classList.add('active');
+            dom.defendBtn.classList.remove('active');
+            
+            state.units.filter(u => u.side === 'ally' && u.alive).forEach(u => {
+                u.state = 'run';
+                u.targetPos = null;
+            });
+        });
+
+        dom.defendBtn.addEventListener('click', () => {
+            if (state.armyStance === 'defend') return;
+            state.armyStance = 'defend';
+            dom.defendBtn.classList.add('active');
+            dom.attackBtn.classList.remove('active');
+            
+            state.units.filter(u => u.side === 'ally' && u.alive).forEach(u => {
+                u.state = 'returning';
+                u.targetUnit = null;
+            });
+        });
+
+        // Màn hình tạm dừng
+        document.getElementById('btn-resume').addEventListener('click', resumeGame);
+        
+        document.getElementById('btn-quit').addEventListener('click', () => {
+            isPaused = false;
+            dom.pauseScreen.style.display = 'none';
+            dom.gameContainer.style.display = 'none';
+            
+            if (state.isPvp) {
+                quitPvpGame();
+                dom.pvpScreen.style.display = 'flex';
+            } else {
+                dom.inputScreen.style.display = 'flex';
+            }
+        });
+
+        document.getElementById('btn-restart-pause').addEventListener('click', () => {
+            isPaused = false;
+            dom.pauseScreen.style.display = 'none';
+            startLevel(state.currentLevel, state.isPvp, state.isPlayerAlly);
+        });
+
+        // Nút tạm dừng
+        dom.pauseBtn.addEventListener('click', pauseGame);
+
+        // Kéo màn hình
+        const onDragStart = (clientX) => { state.isDragging = true; state.dragStartX = clientX; state.cameraStartDragX = state.cameraX; dom.arena.style.cursor = 'grabbing'; };
+        const onDragMove = (clientX) => { if (!state.isDragging) return; const dx = clientX - state.dragStartX; state.cameraX = state.cameraStartDragX - dx; };
+        const onDragEnd = () => { state.isDragging = false; dom.arena.style.cursor = 'grab'; };
+        
+        dom.arena.addEventListener('mousedown', (e) => onDragStart(e.clientX));
+        dom.arena.addEventListener('mousemove', (e) => onDragMove(e.clientX));
+        dom.arena.addEventListener('mouseup', onDragEnd);
+        dom.arena.addEventListener('mouseleave', onDragEnd);
+        dom.arena.addEventListener('touchstart', (e) => onDragStart(e.touches[0].clientX), { passive: true });
+        dom.arena.addEventListener('touchmove', (e) => onDragMove(e.touches[0].clientX), { passive: true });
+        dom.arena.addEventListener('touchend', onDragEnd);
+        dom.arena.addEventListener('touchcancel', onDragEnd);
+    }
+
+    // Khởi tạo
+    setupEventListeners();
+});
+</script>
+</body>
+</html>
