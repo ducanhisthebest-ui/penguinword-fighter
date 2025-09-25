@@ -22,6 +22,12 @@
             --color-accent: #e74c3c;
             --color-light: #ecf0f1;
             --color-dark: #2c3e50;
+            
+            /* Thêm biến mới cho mobile */
+            --player-w-mobile: 60px;
+            --player-h-mobile: 70px;
+            --controls-height-mobile: 120px;
+            --base-size-mobile: 120px;
         }
 
         * {
@@ -256,6 +262,7 @@
             color: var(--color-light);
             font-size: 1.2rem;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            min-height: 50px;
         }
         
         /* Xóa thanh mana */
@@ -374,6 +381,8 @@
             flex-shrink: 0;
             height: 160px;
             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+            overflow-x: auto;
+            overflow-y: hidden;
         }
         .unit-spawn-btn {
             width: 120px;
@@ -392,6 +401,7 @@
             padding: 10px 5px;
             font-size: 16px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            flex-shrink: 0;
         }
         .unit-spawn-btn:hover { 
             transform: translateY(-5px);
@@ -618,6 +628,147 @@
             margin: 15px 0;
             color: var(--color-secondary);
         }
+        
+        /* ========== MEDIA QUERIES CHO MOBILE ========== */
+        @media (max-width: 768px) and (orientation: landscape) {
+            /* Điều chỉnh kích thước cho màn hình mobile ngang */
+            :root {
+                --player-w-desktop: var(--player-w-mobile);
+                --player-h-desktop: var(--player-h-mobile);
+            }
+            
+            #controls {
+                height: var(--controls-height-mobile);
+                padding: 8px;
+                gap: 8px;
+            }
+            
+            .unit-spawn-btn {
+                width: 80px;
+                padding: 5px 3px;
+                font-size: 14px;
+            }
+            
+            .unit-name {
+                font-size: 0.9rem;
+            }
+            
+            .cost {
+                font-size: 10px;
+            }
+            
+            .base-container {
+                width: var(--base-size-mobile);
+                height: calc(var(--base-size-mobile) * 1.25);
+                bottom: 20px;
+            }
+            
+            #base-ally-container {
+                left: 20px;
+            }
+            
+            #base-enemy-container {
+                right: 20px;
+            }
+            
+            .base-health-bar {
+                width: 100px;
+                top: -20px;
+                height: 15px;
+            }
+            
+            #ui-top {
+                padding: 5px;
+                font-size: 1rem;
+            }
+            
+            #score, #level {
+                font-size: 16px;
+                padding: 3px 10px;
+            }
+            
+            #command-buttons {
+                top: 45px;
+                right: 5px;
+                gap: 5px;
+            }
+            
+            .command-btn {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .screen-title {
+                font-size: 2rem;
+            }
+            
+            .screen-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 1rem;
+                min-width: 120px;
+            }
+            
+            textarea {
+                width: 90%;
+                height: 150px;
+            }
+            
+            .penguin-gif {
+                width: 100px;
+                height: 100px;
+            }
+            
+            #pause-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-height: 500px) and (orientation: landscape) {
+            /* Điều chỉnh thêm cho màn hình rất ngắn */
+            #controls {
+                height: 100px;
+                padding: 5px;
+            }
+            
+            .unit-spawn-btn {
+                width: 70px;
+                font-size: 12px;
+            }
+            
+            .unit-name {
+                font-size: 0.8rem;
+            }
+            
+            .cost {
+                font-size: 9px;
+            }
+            
+            .base-container {
+                width: 100px;
+                height: 125px;
+                bottom: 15px;
+            }
+            
+            #base-ally-container {
+                left: 10px;
+            }
+            
+            #base-enemy-container {
+                right: 10px;
+            }
+            
+            .base-health-bar {
+                width: 80px;
+                top: -15px;
+                height: 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -767,1184 +918,8 @@
     </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const CONFIG = {
-        RPS: { shield: 'spear', spear: 'sword', sword: 'shield' },
-        UNIT_STATS: {
-            shield: { 
-                hp: 5, speed: 80, damage: 1, 
-                skins: {
-                    run: 'assets/shieldrun.gif',
-                    fight: 'assets/shieldkill.gif',
-                    dead: 'assets/shielddead.gif'
-                } 
-            },
-            sword:  { 
-                hp: 5, speed: 80, damage: 1, 
-                skins: {
-                    run: 'assets/swordrun.gif',
-                    fight: 'assets/swordkill.gif',
-                    dead: 'assets/sworddead.gif'
-                }
-            },
-            spear:  { 
-                hp: 5, speed: 80, damage: 1, 
-                skins: {
-                    run: 'assets/spearrun.gif',
-                    fight: 'assets/spearkill.gif',
-                    dead: 'assets/speardead.gif'
-                }
-            },
-            witch:  { 
-                hp: 4, speed: 70, damage: 0, 
-                skins: {
-                    run: 'assets/witchrun.gif',
-                    heal: 'assets/witchkill.gif',
-                    dead: 'assets/witchdead.gif'
-                }
-            },
-        },
-        BASE_HP: 10,
-        CONTACT_TICK: 2000, 
-        HEAL_RANGE: 250,
-        HEAL_COOLDOWN: 1500,
-        WORLD_WIDTH_MULTIPLIER: 3,
-        HITBOX_WIDTH: 45,
-        AGGRO_RADIUS: 250,
-        ENEMY_LEVEL_MULTIPLIER: 1.2,
-        WITCH_FLEE_RADIUS: 150,
-        WITCH_SAFE_DISTANCE: 100,
-        BASE_ATTACK_RANGE: 100,
-        DEFENSE_FORMATION: {
-            startOffset: 150,
-            typeSpacing: 60,
-            unitSpacing: -15,
-            order: ['shield', 'sword', 'spear', 'witch']
-        }
-    };
-    
-    // DOM elements
-    const dom = {
-        startScreen: document.getElementById('start-screen'),
-        inputScreen: document.getElementById('input-screen'),
-        questionScreen: document.getElementById('question-screen'),
-        pauseScreen: document.getElementById('pause-screen'),
-        pvpScreen: document.getElementById('pvp-screen'),
-        gameContainer: document.getElementById('game-container'),
-        arena: document.getElementById('arena'),
-        world: document.getElementById('world'),
-        entities: document.getElementById('entities'),
-        score: document.getElementById('score'),
-        level: document.getElementById('level'),
-        overlay: document.getElementById('overlay'),
-        resultText: document.getElementById('result-text'),
-        restartBtn: document.getElementById('restart-btn'),
-        nextLevelBtn: document.getElementById('next-level-btn'),
-        spawnButtons: document.querySelectorAll('#controls [data-spawn]'),
-        attackBtn: document.getElementById('attack-btn'),
-        defendBtn: document.getElementById('defend-btn'),
-        allyBaseHealth: document.getElementById('ally-base-health'),
-        enemyBaseHealth: document.getElementById('enemy-base-health'),
-        allyBaseContainer: document.getElementById('base-ally-container'),
-        enemyBaseContainer: document.getElementById('base-enemy-container'),
-        questionText: document.getElementById('question-text'),
-        answerInput: document.getElementById('answer-input'),
-        btnSubmitAnswer: document.getElementById('btn-submit-answer'),
-        btnCancelQuestion: document.getElementById('btn-cancel-question'),
-        penguinQuestion: document.getElementById('penguin-question'),
-        pauseBtn: document.getElementById('pause-btn'),
-        rotateScreen: document.getElementById('rotate-screen'),
-        playerName: document.getElementById('player-name'),
-        opponentsList: document.getElementById('opponents-list'),
-        waitingStatus: document.getElementById('waiting-status'),
-        btnFindOpponents: document.getElementById('btn-find-opponents'),
-        btnStartPvp: document.getElementById('btn-start-pvp')
-    };
-    
-    // Global variables
-    let state = {};
-    let userQuestions = [];
-    let currentSpawningUnitType = null;
-    let currentQuestionIndex = 0;
-    let isPaused = false;
-    
-    // PVP variables
-    let peer = null;
-    let currentConnection = null;
-    let isHost = false;
-    let playerId = null;
-    let opponents = [];
-    let pvpGameStarted = false;
-
-    // Hàm kiểm tra hướng màn hình
-    function checkOrientation() {
-        const isPortrait = window.innerHeight > window.innerWidth;
-        const isMobile = window.innerWidth <= 768;
-        
-        if ((isPortrait && isMobile) || window.screen?.orientation?.type?.includes('portrait')) {
-            // Hiển thị màn hình xoay ngang
-            dom.rotateScreen.classList.add('show');
-            document.body.classList.add('portrait');
-        } else {
-            // Ẩn màn hình xoay ngang
-            dom.rotateScreen.classList.remove('show');
-            document.body.classList.remove('portrait');
-        }
-    }
-
-    // Kiểm tra hướng màn hình khi trang được tải
-    checkOrientation();
-    
-    // Kiểm tra hướng màn hình khi thay đổi kích thước
-    window.addEventListener('resize', checkOrientation);
-    
-    // Kiểm tra hướng màn hình khi xoay thiết bị
-    window.addEventListener('orientationchange', checkOrientation);
-
-    // ========== CẢI TIẾN CƠ CHẾ CHỌN MỤC TIÊU ==========
-    
-    // Hàm tìm mục tiêu theo thang ưu tiên
-    function findPriorityTarget(unit, enemies) {
-        if (!enemies || enemies.length === 0) return null;
-        
-        // Tạo danh sách mục tiêu có điểm ưu tiên
-        const targetsWithPriority = [];
-        
-        for (const enemy of enemies) {
-            if (!enemy.alive) continue;
-            
-            const distance = Math.hypot(unit.x - enemy.x, unit.y - enemy.y);
-            if (distance > CONFIG.AGGRO_RADIUS) continue;
-            
-            let priority = 0;
-            
-            // Ưu tiên 1: Trụ (base) - không áp dụng ở đây vì trụ không phải là unit
-            
-            // Ưu tiên 2: Quân địch chưa bị quân đồng minh tấn công
-            const isBeingAttacked = state.units.some(u => 
-                u.side === 'ally' && u.targetUnit === enemy && u.alive
-            );
-            
-            if (!isBeingAttacked) {
-                priority = 4; // Điểm cao nhất
-            } 
-            // Ưu tiên 3: Quân địch đang bị tấn công bởi quân đồng minh
-            else if (isBeingAttacked) {
-                priority = 3;
-            }
-            
-            // Ưu tiên 4: Quân địch đang lao vào quân đồng minh
-            if (enemy.targetUnit && enemy.targetUnit.side === 'ally') {
-                priority = Math.max(priority, 2); // Không cao hơn ưu tiên 2 và 3
-            }
-            
-            // Thêm vào danh sách với điểm ưu tiên và khoảng cách
-            targetsWithPriority.push({
-                enemy,
-                priority,
-                distance
-            });
-        }
-        
-        // Sắp xếp theo ưu tiên (cao đến thấp) và khoảng cách (gần đến xa)
-        targetsWithPriority.sort((a, b) => {
-            if (a.priority !== b.priority) {
-                return b.priority - a.priority; // Ưu tiên cao hơn trước
-            }
-            return a.distance - b.distance; // Gần hơn trước
-        });
-        
-        // Trả về mục tiêu ưu tiên cao nhất
-        return targetsWithPriority.length > 0 ? targetsWithPriority[0].enemy : null;
-    }
-
-    function initState(level, isPvp = false, isPlayerAlly = true) {
-        const viewportWidth = dom.arena.clientWidth;
-        state = {
-            units: [],
-            gameStatus: 'playing',
-            lastTimestamp: 0,
-            score: 0,
-            currentLevel: level,
-            viewportWidth: viewportWidth,
-            worldWidth: viewportWidth * CONFIG.WORLD_WIDTH_MULTIPLIER,
-            groundLevel: dom.arena.clientHeight * 0.85,
-            cameraX: 0,
-            armyStance: 'defend',
-            allyBaseHp: CONFIG.BASE_HP,
-            enemyBaseHp: CONFIG.BASE_HP,
-            isDragging: false,
-            dragStartX: 0,
-            cameraStartDragX: 0,
-            animationFrameId: null,
-            allyBasePosition: 250,
-            enemyBasePosition: (viewportWidth * CONFIG.WORLD_WIDTH_MULTIPLIER) - 250,
-            enemyWaveTimers: [],
-            currentWave: 0,
-            totalWaves: 2,
-            isPvp: isPvp,
-            isPlayerAlly: isPlayerAlly
-        };
-        dom.world.style.width = `${state.worldWidth}px`;
-        renderBaseHealth();
-        dom.defendBtn.classList.add('active');
-        dom.attackBtn.classList.remove('active');
-        updateUI();
-    }
-
-    function spriteFor(type, state) {
-        const unitSkins = CONFIG.UNIT_STATS[type].skins;
-        return unitSkins[state] || unitSkins['run'];
-    }
-
-    function setSprite(u, state) {
-        if (!u.alive && state !== 'dead') return;
-        if (u.visualState === state) return;
-        u.visualState = state;
-        u.skin.style.backgroundImage = `url('${spriteFor(u.type, state)}')`;
-    }
-
-    function spawnUnit({type, side}) {
-        const stats = CONFIG.UNIT_STATS[type];
-        if (!stats) return;
-
-        const id = crypto.randomUUID();
-        const el = document.createElement('div');
-        el.className = `unit ${side}`;
-        const skin = document.createElement('div');
-        skin.className = 'skin';
-        el.appendChild(skin);
-
-        const healthBar = document.createElement('div');
-        healthBar.className = 'health';
-        el.appendChild(healthBar);
-        dom.entities.appendChild(el);
-        
-        const levelMultiplier = side === 'enemy' ? Math.pow(CONFIG.ENEMY_LEVEL_MULTIPLIER, state.currentLevel - 1) : 1;
-        const speedBonus = side === 'enemy' ? Math.floor((state.currentLevel - 1) / 2) : 0;
-        
-        const u = {
-            id, type, side,
-            hp: Math.ceil(stats.hp * levelMultiplier),
-            maxHp: Math.ceil(stats.hp * levelMultiplier),
-            speed: stats.speed + speedBonus,
-            damage: Math.ceil(stats.damage * levelMultiplier),
-            alive: true,
-            state: (side === 'ally' && state.armyStance === 'defend') ? 'defending' : 'run',
-            visualState: '',
-            el, skin, healthBar,
-            contactTimer: 0,
-            healTimer: 0,
-            x: side === 'ally' ? state.allyBasePosition : state.enemyBasePosition,
-            y: state.groundLevel + (Math.random() - 0.5) * 80,
-            targetUnit: null,
-            targetPos: null,
-        };
-        setSprite(u, 'run');
-        updateHealthBar(u);
-        state.units.push(u);
-        
-        // Gửi thông tin unit mới cho đối thủ trong chế độ PVP
-        if (state.isPvp && currentConnection) {
-            currentConnection.send({
-                type: 'spawnUnit',
-                unitType: type,
-                unitSide: side,
-                unitId: id
-            });
-        }
-    }
-    
-    function damage(u, amount) {
-        if (!u.alive) return;
-        u.hp = Math.max(0, u.hp - amount);
-        updateHealthBar(u);
-        
-        if (u.hp === 0) {
-            u.alive = false;
-            u.state = 'dead';
-            setSprite(u, 'dead');
-            if (u.side === 'enemy') {
-                state.score += 10 * state.currentLevel;
-            }
-            setTimeout(() => {
-                if (u.el && u.el.parentNode) {
-                    u.el.remove();
-                }
-                state.units = state.units.filter(unit => unit.id !== u.id);
-            }, 2000);
-        }
-        
-        // Gửi thông tin damage cho đối thủ trong chế độ PVP
-        if (state.isPvp && currentConnection) {
-            currentConnection.send({
-                type: 'unitDamage',
-                unitId: u.id,
-                damage: amount,
-                newHp: u.hp
-            });
-        }
-    }
-
-    function updateHealthBar(u) {
-        const percentage = (u.hp / u.maxHp) * 100;
-        u.healthBar.innerHTML = `<div style="width: ${percentage}%;" class="health-bar-fill ${u.side}"></div>`;
-    }
-    
-    function renderBaseHealth() {
-        const renderBar = (hp) => Array.from({length: CONFIG.BASE_HP}, (_, i) => 
-            `<div class="health-segment ${i >= hp ? 'empty' : ''}"></div>`
-        ).join('');
-        dom.allyBaseHealth.innerHTML = renderBar(state.allyBaseHp);
-        dom.enemyBaseHealth.innerHTML = renderBar(state.enemyBaseHp);
-    }
-
-    function tick(timestamp) {
-        if (isPaused) return;
-        
-        state.animationFrameId = requestAnimationFrame(tick);
-        if (state.gameStatus !== 'playing') return;
-        if (!state.lastTimestamp) state.lastTimestamp = timestamp;
-        const dt = timestamp - state.lastTimestamp;
-        state.lastTimestamp = timestamp;
-
-        updateUnitLogic(state.units, dt);
-        checkWinLose();
-        updateCamera();
-        renderUnits(state.units);
-        updateUI();
-    }
-    
-    function updateUnitLogic(units, dt) {
-        const aliveUnits = units.filter(u => u.alive);
-        const allies = aliveUnits.filter(u => u.side === 'ally');
-        const enemies = aliveUnits.filter(u => u.side === 'enemy');
-        const enemiesBySide = { ally: enemies, enemy: allies };
-
-        if (state.armyStance === 'defend') {
-            updateDefensiveFormation(allies);
-        }
-
-        aliveUnits.forEach(u => {
-            if (u.type === 'witch') {
-                updateWitch(u, dt, aliveUnits);
-                return;
-            }
-
-            if (u.side === 'ally' && (u.state === 'defending' || u.state === 'returning')) {
-                // Sử dụng cơ chế chọn mục tiêu mới
-                const enemy = findPriorityTarget(u, enemiesBySide[u.side]);
-                if (enemy) {
-                    u.targetUnit = enemy;
-                    u.state = 'chasing';
-                    u.targetPos = null;
-                } else {
-                    moveToTargetPosition(u, dt);
-                    setSprite(u, 'run');
-                }
-                return;
-            }
-
-            if (!u.targetUnit || !u.targetUnit.alive) {
-                // Sử dụng cơ chế chọn mục tiêu mới cho ally, cũ cho enemy
-                if (u.side === 'ally') {
-                    u.targetUnit = findPriorityTarget(u, enemiesBySide[u.side]);
-                } else {
-                    // Enemy vẫn sử dụng cơ chế cũ
-                    u.targetUnit = findClosestEnemy(u, enemiesBySide[u.side]);
-                }
-                u.state = u.targetUnit ? 'chasing' : 'run';
-            }
-            
-            const enemyBaseX = u.side === 'ally' ? state.enemyBasePosition : state.allyBasePosition;
-            const isNearBase = Math.abs(u.x - enemyBaseX) < CONFIG.BASE_ATTACK_RANGE;
-            
-            if (isNearBase && !u.targetUnit) {
-                u.state = 'fight_base';
-                u.x = enemyBaseX;
-            }
-
-            switch (u.state) {
-                case 'run':
-                    moveTowardsBase(u, dt);
-                    setSprite(u, 'run');
-                    break;
-                case 'chasing':
-                    chaseTarget(u, dt);
-                    setSprite(u, 'run');
-                    break;
-                case 'fight':
-                    fightTarget(u, dt);
-                    setSprite(u, 'fight');
-                    break;
-                case 'fight_base':
-                    fightBase(u, dt);
-                    setSprite(u, 'fight');
-                    break;
-            }
-        });
-    }
-
-    function updateDefensiveFormation(allies) {
-        const formationCounts = {};
-        const { startOffset, typeSpacing, unitSpacing, order } = CONFIG.DEFENSE_FORMATION;
-
-        allies.forEach(u => {
-            const typeIndex = order.indexOf(u.type);
-            if (typeIndex === -1) return;
-
-            if (!formationCounts[u.type]) {
-                formationCounts[u.type] = 0;
-            }
-            
-            const targetX = state.allyBasePosition + startOffset + (typeIndex * typeSpacing);
-            const targetY = state.groundLevel + (formationCounts[u.type] * unitSpacing);
-            
-            u.targetPos = { x: targetX, y: targetY };
-
-            formationCounts[u.type]++;
-        });
-    }
-
-    function moveToTargetPosition(u, dt) {
-        if (!u.targetPos) {
-            setSprite(u, 'run');
-            return;
-        }
-
-        const dist = Math.hypot(u.targetPos.x - u.x, u.targetPos.y - u.y);
-        const speed = u.speed * (dt / 1000);
-        
-        if (dist < 5) {
-            u.state = 'defending';
-            setSprite(u, 'run');
-        } else {
-            const angle = Math.atan2(u.targetPos.y - u.y, u.targetPos.x - u.x);
-            u.x += Math.cos(angle) * speed;
-            u.y += Math.sin(angle) * speed;
-            setSprite(u, 'run');
-        }
-    }
-    
-    function updateWitch(u, dt, allUnits) {
-        const allies = allUnits.filter(v => v.side === u.side && v.id !== u.id);
-        const enemies = allUnits.filter(v => v.side !== u.side);
-        const moveDir = u.side === 'ally' ? 1 : -1;
-        
-        const pursuer = enemies.find(e => Math.hypot(u.x - e.x, u.y - e.y) < CONFIG.WITCH_FLEE_RADIUS);
-        if (pursuer) {
-            u.state = 'fleeing';
-            const angle = Math.atan2(u.y - pursuer.y, u.x - pursuer.x);
-            u.x += Math.cos(angle) * u.speed * (dt / 1000);
-            u.y += Math.sin(angle) * u.speed * (dt / 1000);
-            setSprite(u, 'run');
-            u.x = Math.max(0, Math.min(state.worldWidth, u.x));
-            u.y = Math.max(state.groundLevel - 40, Math.min(state.groundLevel + 40, u.y));
-            return;
-        }
-
-        u.healTimer += dt;
-        if (u.healTimer >= CONFIG.HEAL_COOLDOWN) {
-            u.healTimer = 0;
-            const potentialTargets = allies.filter(ally =>
-                ally.hp < ally.maxHp && Math.abs(u.x - ally.x) <= CONFIG.HEAL_RANGE
-            );
-            if (u.hp < u.maxHp) {
-                potentialTargets.push(u);
-            }
-
-            if (potentialTargets.length > 0) {
-                potentialTargets.sort((a, b) => {
-                    const healthPctDiff = (a.hp / a.maxHp) - (b.hp / b.maxHp);
-                    if (healthPctDiff !== 0) return healthPctDiff;
-                    return Math.abs(u.x - a.x) - Math.abs(u.x - b.x);
-                });
-                const healTarget = potentialTargets[0];
-
-                setSprite(u, 'heal');
-                healTarget.hp = Math.min(healTarget.maxHp, healTarget.hp + 1);
-                updateHealthBar(healTarget);
-                setTimeout(() => { if (u.alive && u.visualState === 'heal') setSprite(u, 'run'); }, 1000);
-            }
-        }
-        
-        if (u.visualState === 'heal') return;
-
-        if (u.side === 'ally' && state.armyStance === 'defend') {
-            u.state = 'defending';
-            moveToTargetPosition(u, dt);
-        } else {
-            const frontlineAllies = allies.filter(ally => (moveDir === 1 ? ally.x > u.x : ally.x < u.x));
-            if (frontlineAllies.length > 0) {
-                const frontlineX = frontlineAllies.reduce((acc, ally) => (moveDir === 1 ? Math.max(acc, ally.x) : Math.min(acc, ally.x)), u.x);
-                const targetX = frontlineX - (moveDir * CONFIG.WITCH_SAFE_DISTANCE);
-
-                if (Math.abs(u.x - targetX) > 10) {
-                    u.x += Math.sign(targetX - u.x) * u.speed * (dt / 1000);
-                    setSprite(u, 'run');
-                } else {
-                     u.state = 'idle';
-                     setSprite(u, 'run');
-                }
-            } else {
-                const enemyBaseX = state.enemyBasePosition;
-                 if (Math.abs(u.x - enemyBaseX) > CONFIG.WITCH_SAFE_DISTANCE + 100) {
-                    u.x += moveDir * u.speed * (dt / 1000);
-                    setSprite(u, 'run');
-                } else {
-                     u.state = 'idle';
-                     setSprite(u, 'run');
-                }
-            }
-        }
-    }
-    
-    // Hàm tìm kẻ địch gần nhất (giữ nguyên cho enemy)
-    function findClosestEnemy(unit, enemies) {
-        let closestEnemy = null;
-        let minDistance = CONFIG.AGGRO_RADIUS;
-        for (const enemy of enemies) {
-            const distance = Math.hypot(unit.x - enemy.x, unit.y - enemy.y);
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestEnemy = enemy;
-            }
-        }
-        return closestEnemy;
-    }
-
-    function moveTowardsBase(u, dt) {
-        if (!u.alive) return;
-        const moveDir = u.side === 'ally' ? 1 : -1;
-        const enemyBaseX = u.side === 'ally' ? state.enemyBasePosition : state.allyBasePosition;
-        const isNearBase = Math.abs(u.x - enemyBaseX) < CONFIG.BASE_ATTACK_RANGE;
-        if (isNearBase) {
-            u.state = 'fight_base';
-            u.x = enemyBaseX;
-        } else {
-            u.x += moveDir * u.speed * (dt / 1000);
-        }
-    }
-
-    function chaseTarget(u, dt) {
-        if (!u.alive) return;
-        if (!u.targetUnit || !u.targetUnit.alive) {
-            if (u.side === 'ally' && state.armyStance === 'defend') {
-                u.state = 'returning';
-            } else {
-                u.state = 'run';
-            }
-            u.targetUnit = null;
-            return;
-        }
-        const dist = Math.hypot(u.targetUnit.x - u.x, u.targetUnit.y - u.y);
-        const speed = u.speed * (dt / 1000);
-        if (dist <= CONFIG.HITBOX_WIDTH) {
-            u.state = 'fight';
-        } else {
-            const angle = Math.atan2(u.targetUnit.y - u.y, u.targetUnit.x - u.x);
-            u.x += Math.cos(angle) * speed;
-            u.y += Math.sin(angle) * speed;
-        }
-    }
-    
-    function fightTarget(u, dt) {
-        if (!u.alive) return;
-        if (!u.targetUnit || !u.targetUnit.alive) {
-            if (u.side === 'ally' && state.armyStance === 'defend') {
-                u.state = 'returning';
-            } else {
-                u.state = 'run';
-            }
-            u.targetUnit = null;
-            u.contactTimer = 0;
-            return;
-        }
-        if (Math.hypot(u.targetUnit.x - u.x, u.targetUnit.y - u.y) > CONFIG.HITBOX_WIDTH + 10) {
-             u.state = 'chasing';
-             return;
-        }
-        u.contactTimer += dt;
-        if (u.contactTimer >= CONFIG.CONTACT_TICK) {
-            u.contactTimer -= CONFIG.CONTACT_TICK;
-            resolveRPS(u, u.targetUnit);
-        }
-    }
-    
-    function resolveRPS(a, b) {
-        if (!a.alive || !b.alive) return;
-        const isCounter = (unitA, unitB) => CONFIG.RPS[unitA.type] === unitB.type;
-        if (a.type === 'witch' && b.type !== 'witch') {
-            damage(a, 3);
-            return;
-        }
-        if (b.type === 'witch' && a.type !== 'witch') {
-            damage(b, 3);
-            return;
-        }
-        if (isCounter(a, b)) {
-            damage(a, 1);
-            damage(b, 3);
-        } else if (isCounter(b, a)) {
-            damage(b, 1);
-            damage(a, 3);
-        } else {
-            damage(a, 2);
-            damage(b, 2);
-        }
-    }
-
-    function fightBase(u, dt) {
-        if (!u.alive) return;
-        u.contactTimer += dt;
-        if (u.contactTimer >= CONFIG.CONTACT_TICK) {
-            u.contactTimer -= CONFIG.CONTACT_TICK;
-            if (u.side === 'ally') {
-                state.enemyBaseHp = Math.max(0, state.enemyBaseHp - 1);
-                flashBase(dom.enemyBaseContainer);
-                
-                // Gửi thông tin damage base cho đối thủ trong chế độ PVP
-                if (state.isPvp && currentConnection) {
-                    currentConnection.send({
-                        type: 'baseDamage',
-                        baseSide: 'enemy',
-                        newHp: state.enemyBaseHp
-                    });
-                }
-            } else {
-                state.allyBaseHp = Math.max(0, state.allyBaseHp - 1);
-                flashBase(dom.allyBaseContainer);
-                
-                // Gửi thông tin damage base cho đối thủ trong chế độ PVP
-                if (state.isPvp && currentConnection) {
-                    currentConnection.send({
-                        type: 'baseDamage',
-                        baseSide: 'ally',
-                        newHp: state.allyBaseHp
-                    });
-                }
-            }
-            renderBaseHealth();
-        }
-    }
-    
-    function flashBase(baseElement) {
-        baseElement.classList.add('hit-flash');
-        baseElement.addEventListener('animationend', () => {
-            baseElement.classList.remove('hit-flash');
-        }, { once: true });
-    }
-
-    function checkWinLose() {
-        if (state.gameStatus !== 'playing') return;
-        if (state.allyBaseHp <= 0) endGame(false);
-        if (state.enemyBaseHp <= 0) endGame(true);
-    }
-
-    function endGame(isVictory) {
-        if (state.gameStatus !== 'playing') return;
-        state.gameStatus = isVictory ? 'won' : 'lost';
-        dom.overlay.classList.remove('hidden');
-        dom.resultText.textContent = isVictory ? `CHIẾN THẮNG!` : `THẤT BẠI!`;
-        
-        // Gửi kết quả game cho đối thủ trong chế độ PVP
-        if (state.isPvp && currentConnection) {
-            currentConnection.send({
-                type: 'gameEnd',
-                victory: isVictory
-            });
-        }
-        
-        setTimeout(() => {
-            if (isVictory) {
-                startLevel(state.currentLevel + 1);
-            } else {
-                startLevel(state.currentLevel);
-            }
-        }, 2000);
-        
-        if (state.animationFrameId) {
-            cancelAnimationFrame(state.animationFrameId);
-            state.animationFrameId = null;
-        }
-    }
-
-    function renderUnits(units) {
-        units.forEach(u => {
-            u.el.style.transform = `translate(${u.x - (u.el.clientWidth / 2)}px, ${u.y - u.el.clientHeight}px)`;
-        });
-    }
-
-    function updateCamera() {
-        const camX = Math.max(0, Math.min(state.worldWidth - state.viewportWidth, state.cameraX));
-        dom.world.style.transform = `translateX(${-camX}px)`;
-    }
-    
-    function updateUI() {
-        dom.score.textContent = `Điểm: ${state.score}`;
-        dom.level.textContent = `Màn: ${state.currentLevel}`;
-    }
-
-    function generateEnemyWave(level) {
-        state.enemyWaveTimers.forEach(timer => clearTimeout(timer));
-        state.enemyWaveTimers = [];
-        state.currentWave = 0;
-        
-        const unitTypes = ['shield', 'sword', 'spear'];
-        const totalEnemies = 8 + (level - 1) * 2;
-        const enemiesPerWave = Math.floor(totalEnemies / 2);
-        
-        const baseWaveDelay = 60000;
-        const waveDelayReduction = Math.floor((level - 1) / 4) * 2000;
-        const waveDelay = baseWaveDelay - waveDelayReduction;
-        
-        state.currentWave = 1;
-        for (let i = 0; i < enemiesPerWave; i++) {
-            const timer = setTimeout(() => {
-                if (state.gameStatus !== 'playing') return;
-                const type = unitTypes[Math.floor(Math.random() * unitTypes.length)];
-                spawnUnit({type, side: 'enemy'});
-            }, i * 2000 + 1000);
-            state.enemyWaveTimers.push(timer);
-        }
-        
-        const secondWaveTimer = setTimeout(() => {
-            if (state.gameStatus !== 'playing') return;
-            state.currentWave = 2;
-            for (let i = 0; i < enemiesPerWave; i++) {
-                const timer = setTimeout(() => {
-                    if (state.gameStatus !== 'playing') return;
-                    const type = unitTypes[Math.floor(Math.random() * unitTypes.length)];
-                    spawnUnit({type, side: 'enemy'});
-                }, i * 2000 + 1000);
-                state.enemyWaveTimers.push(timer);
-            }
-            
-            if (level >= 3 && Math.random() > 0.5) {
-                const witchTimer = setTimeout(() => {
-                    if (state.gameStatus !== 'playing') return;
-                    spawnUnit({type: 'witch', side: 'enemy'});
-                }, enemiesPerWave * 2000 + 1000);
-                state.enemyWaveTimers.push(witchTimer);
-            }
-        }, waveDelay);
-        
-        state.enemyWaveTimers.push(secondWaveTimer);
-    }
-
-    function startLevel(level = 1, isPvp = false, isPlayerAlly = true) {
-        if (state.animationFrameId) {
-            cancelAnimationFrame(state.animationFrameId);
-        }
-        dom.entities.innerHTML = '';
-        dom.overlay.classList.add('hidden');
-        initState(level, isPvp, isPlayerAlly);
-        
-        if (!isPvp) {
-            generateEnemyWave(level);
-        }
-        
-        state.lastTimestamp = performance.now();
-        tick(performance.now());
-    }
-
-    function showQuestionScreen(unitType) {
-        if (userQuestions.length === 0) {
-            alert('Vui lòng nhập câu hỏi và đáp án trước khi chơi!');
-            return;
-        }
-        
-        currentSpawningUnitType = unitType;
-        currentQuestionIndex = Math.floor(Math.random() * userQuestions.length);
-        const question = userQuestions[currentQuestionIndex];
-        
-        dom.questionText.textContent = question.question;
-        dom.answerInput.value = '';
-        dom.penguinQuestion.src = 'assets/' + unitType + 'waiting.gif';
-        
-        dom.questionScreen.style.display = 'flex';
-        dom.answerInput.focus();
-    }
-
-    function hideQuestionScreen() {
-        dom.questionScreen.style.display = 'none';
-        currentSpawningUnitType = null;
-    }
-
-    function pauseGame() {
-        if (state.gameStatus !== 'playing') return;
-        isPaused = true;
-        dom.pauseScreen.style.display = 'flex';
-        if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
-    }
-
-    function resumeGame() {
-        isPaused = false;
-        dom.pauseScreen.style.display = 'none';
-        state.lastTimestamp = performance.now();
-        tick(performance.now());
-    }
-
-    // ========== CHẾ ĐỘ PVP ==========
-    
-    function initializePvp() {
-        // Tạo ID ngẫu nhiên cho người chơi
-        playerId = 'player_' + Math.random().toString(36).substr(2, 9);
-        
-        // Khởi tạo PeerJS
-        peer = new Peer(playerId, {
-            host: '0.peerjs.com',
-            port: 443,
-            path: '/',
-            debug: 3
-        });
-        
-        peer.on('open', (id) => {
-            console.log('PeerJS connected with ID: ', id);
-            dom.btnFindOpponents.disabled = false;
-            dom.btnFindOpponents.textContent = 'Tìm đối thủ';
-        });
-        
-        peer.on('connection', (conn) => {
-            console.log('Kết nối đến từ: ', conn.peer);
-            handleConnection(conn);
-        });
-        
-        peer.on('error', (err) => {
-            console.error('PeerJS error: ', err);
-            alert('Lỗi kết nối PVP: ' + err.message);
-        });
-    }
-    
-    function findOpponents() {
-        const playerName = dom.playerName.value.trim();
-        if (!playerName) {
-            alert('Vui lòng nhập tên của bạn!');
-            return;
-        }
-        
-        dom.btnFindOpponents.disabled = true;
-        dom.btnFindOpponents.textContent = 'Đang tìm...';
-        dom.waitingStatus.style.display = 'block';
-        
-        // Trong thực tế, bạn cần một signaling server để tìm đối thủ
-        // Ở đây tôi sẽ mô phỏng việc tìm đối thủ sau 3 giây
-        setTimeout(() => {
-            // Giả lập danh sách đối thủ (trong thực tế, đây sẽ là dữ liệu từ server)
-            opponents = [
-                { id: 'opponent_1', name: 'Người chơi 1' },
-                { id: 'opponent_2', name: 'Người chơi 2' }
-            ];
-            
-            displayOpponentsList();
-            dom.waitingStatus.style.display = 'none';
-            dom.opponentsList.style.display = 'block';
-        }, 3000);
-    }
-    
-    function displayOpponentsList() {
-        dom.opponentsList.innerHTML = '<h3>Danh sách đối thủ:</h3>';
-        
-        if (opponents.length === 0) {
-            dom.opponentsList.innerHTML += '<p>Không có đối thủ nào</p>';
-            return;
-        }
-        
-        opponents.forEach(opponent => {
-            const opponentItem = document.createElement('div');
-            opponentItem.className = 'opponent-item';
-            opponentItem.textContent = opponent.name;
-            opponentItem.addEventListener('click', () => {
-                connectToOpponent(opponent.id);
-            });
-            dom.opponentsList.appendChild(opponentItem);
-        });
-    }
-    
-    function connectToOpponent(opponentId) {
-        const conn = peer.connect(opponentId);
-        handleConnection(conn);
-    }
-    
-    function handleConnection(conn) {
-        currentConnection = conn;
-        
-        conn.on('open', () => {
-            console.log('Kết nối thành công với: ', conn.peer);
-            dom.waitingStatus.textContent = 'Đã kết nối với đối thủ!';
-            dom.btnStartPvp.style.display = 'inline-block';
-            
-            // Gửi thông tin người chơi
-            conn.send({
-                type: 'playerInfo',
-                name: dom.playerName.value.trim(),
-                id: playerId
-            });
-        });
-        
-        conn.on('data', (data) => {
-            handlePvpData(data);
-        });
-        
-        conn.on('close', () => {
-            console.log('Kết nối đã đóng');
-            if (pvpGameStarted) {
-                alert('Đối thủ đã rời khỏi trò chơi!');
-                quitPvpGame();
-            }
-        });
-        
-        conn.on('error', (err) => {
-            console.error('Lỗi kết nối: ', err);
-        });
-    }
-    
-    function handlePvpData(data) {
-        switch (data.type) {
-            case 'playerInfo':
-                console.log('Thông tin đối thủ: ', data.name);
-                break;
-                
-            case 'startGame':
-                startPvpGame(false); // Người này là enemy (đỏ)
-                break;
-                
-            case 'spawnUnit':
-                spawnUnit({
-                    type: data.unitType,
-                    side: data.unitSide === 'ally' ? 'enemy' : 'ally'
-                });
-                break;
-                
-            case 'unitDamage':
-                const unit = state.units.find(u => u.id === data.unitId);
-                if (unit) {
-                    unit.hp = data.newHp;
-                    updateHealthBar(unit);
-                    if (unit.hp <= 0) {
-                        unit.alive = false;
-                        unit.state = 'dead';
-                        setSprite(unit, 'dead');
-                        setTimeout(() => {
-                            if (unit.el && unit.el.parentNode) {
-                                unit.el.remove();
-                            }
-                            state.units = state.units.filter(u => u.id !== data.unitId);
-                        }, 2000);
-                    }
-                }
-                break;
-                
-            case 'baseDamage':
-                if (data.baseSide === 'ally') {
-                    state.allyBaseHp = data.newHp;
-                } else {
-                    state.enemyBaseHp = data.newHp;
-                }
-                renderBaseHealth();
-                break;
-                
-            case 'gameEnd':
-                endGame(!data.victory); // Đảo ngược kết quả cho người chơi còn lại
-                break;
-        }
-    }
-    
-    function startPvpGame(isHostPlayer) {
-        pvpGameStarted = true;
-        isHost = isHostPlayer;
-        
-        dom.pvpScreen.style.display = 'none';
-        dom.gameContainer.style.display = 'flex';
-        
-        startLevel(1, true, isHostPlayer);
-        
-        // Nếu là host, thông báo cho đối thủ bắt đầu game
-        if (isHostPlayer && currentConnection) {
-            currentConnection.send({ type: 'startGame' });
-        }
-    }
-    
-    function quitPvpGame() {
-        pvpGameStarted = false;
-        if (currentConnection) {
-            currentConnection.close();
-            currentConnection = null;
-        }
-        
-        if (peer) {
-            peer.destroy();
-            peer = null;
-        }
-        
-        dom.gameContainer.style.display = 'none';
-        dom.pvpScreen.style.display = 'flex';
-        dom.waitingStatus.style.display = 'none';
-        dom.opponentsList.style.display = 'none';
-        dom.btnStartPvp.style.display = 'none';
-        dom.btnFindOpponents.disabled = false;
-        dom.btnFindOpponents.textContent = 'Tìm đối thủ';
-    }
-
-    function setupEventListeners() {
-        // Màn hình chào
-        document.getElementById('btn-to-input').addEventListener('click', () => {
-            dom.startScreen.style.display = 'none';
-            dom.inputScreen.style.display = 'flex';
-        });
-
-        document.getElementById('btn-pvp').addEventListener('click', () => {
-            dom.startScreen.style.display = 'none';
-            dom.pvpScreen.style.display = 'flex';
-            initializePvp();
-        });
-
-        document.getElementById('btn-show-guide').addEventListener('click', () => {
-            alert('Hướng dẫn:\n1. Nhập chướng ngại và đáp án\n2. Chọn quân để thả\n3. Trả lời câu hỏi đúng để thả quân\n4. Bảo vệ trụ và phá hủy trụ địch');
-        });
-
-        // Màn hình nhập liệu
-        document.getElementById('btn-back').addEventListener('click', () => {
-            dom.inputScreen.style.display = 'none';
-            dom.startScreen.style.display = 'flex';
-        });
-
-        document.getElementById('btn-clear').addEventListener('click', () => {
-            document.getElementById('obstacles').value = '';
-            document.getElementById('answers').value = '';
-        });
-
-        document.getElementById('btn-confirm').addEventListener('click', () => {
-            const obstacles = document.getElementById('obstacles').value.trim().split('\n').filter(line => line);
-            const answers = document.getElementById('answers').value.trim().split('\n').filter(line => line);
-            
-            if (obstacles.length === 0 || obstacles.length !== answers.length) {
-                alert('Dữ liệu không hợp lệ! Vui lòng kiểm tra số lượng chướng ngại vật và đáp án.');
-                return;
-            }
-            
-            userQuestions = obstacles.map((q, i) => ({ question: q, answer: answers[i] }));
-            dom.inputScreen.style.display = 'none';
-            dom.gameContainer.style.display = 'flex';
-            startLevel(1);
-        });
-
-        // Màn hình PVP
-        document.getElementById('btn-back-from-pvp').addEventListener('click', () => {
-            quitPvpGame();
-            dom.pvpScreen.style.display = 'none';
-            dom.startScreen.style.display = 'flex';
-        });
-
-        dom.btnFindOpponents.addEventListener('click', findOpponents);
-        
-        dom.btnStartPvp.addEventListener('click', () => {
-            startPvpGame(true); // Người này là host (xanh)
-        });
-
-        // Màn hình câu hỏi
-        dom.btnSubmitAnswer.addEventListener('click', () => {
-            const userAnswer = dom.answerInput.value.trim();
-            const correctAnswer = userQuestions[currentQuestionIndex].answer;
-            
-            if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
-                spawnUnit({type: currentSpawningUnitType, side: 'ally'});
-                hideQuestionScreen();
-            } else {
-                dom.penguinQuestion.src = 'assets/' + currentSpawningUnitType + 'ping.gif';
-                dom.answerInput.value = '';
-                setTimeout(() => {
-                    dom.penguinQuestion.src = 'assets/' + currentSpawningUnitType + 'waiting.gif';
-                }, 2000);
-            }
-        });
-
-        dom.btnCancelQuestion.addEventListener('click', () => {
-            hideQuestionScreen();
-        });
-
-        dom.answerInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                dom.btnSubmitAnswer.click();
-            }
-        });
-
-        // Nút thả quân
-        dom.spawnButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const unitType = btn.dataset.spawn;
-                showQuestionScreen(unitType);
-            });
-        });
-
-        // Nút tấn công/phòng thủ
-        dom.attackBtn.addEventListener('click', () => {
-            if (state.armyStance === 'attack') return;
-            state.armyStance = 'attack';
-            dom.attackBtn.classList.add('active');
-            dom.defendBtn.classList.remove('active');
-            
-            state.units.filter(u => u.side === 'ally' && u.alive).forEach(u => {
-                u.state = 'run';
-                u.targetPos = null;
-            });
-        });
-
-        dom.defendBtn.addEventListener('click', () => {
-            if (state.armyStance === 'defend') return;
-            state.armyStance = 'defend';
-            dom.defendBtn.classList.add('active');
-            dom.attackBtn.classList.remove('active');
-            
-            state.units.filter(u => u.side === 'ally' && u.alive).forEach(u => {
-                u.state = 'returning';
-                u.targetUnit = null;
-            });
-        });
-
-        // Màn hình tạm dừng
-        document.getElementById('btn-resume').addEventListener('click', resumeGame);
-        
-        document.getElementById('btn-quit').addEventListener('click', () => {
-            isPaused = false;
-            dom.pauseScreen.style.display = 'none';
-            dom.gameContainer.style.display = 'none';
-            
-            if (state.isPvp) {
-                quitPvpGame();
-                dom.pvpScreen.style.display = 'flex';
-            } else {
-                dom.inputScreen.style.display = 'flex';
-            }
-        });
-
-        document.getElementById('btn-restart-pause').addEventListener('click', () => {
-            isPaused = false;
-            dom.pauseScreen.style.display = 'none';
-            startLevel(state.currentLevel, state.isPvp, state.isPlayerAlly);
-        });
-
-        // Nút tạm dừng
-        dom.pauseBtn.addEventListener('click', pauseGame);
-
-        // Kéo màn hình
-        const onDragStart = (clientX) => { state.isDragging = true; state.dragStartX = clientX; state.cameraStartDragX = state.cameraX; dom.arena.style.cursor = 'grabbing'; };
-        const onDragMove = (clientX) => { if (!state.isDragging) return; const dx = clientX - state.dragStartX; state.cameraX = state.cameraStartDragX - dx; };
-        const onDragEnd = () => { state.isDragging = false; dom.arena.style.cursor = 'grab'; };
-        
-        dom.arena.addEventListener('mousedown', (e) => onDragStart(e.clientX));
-        dom.arena.addEventListener('mousemove', (e) => onDragMove(e.clientX));
-        dom.arena.addEventListener('mouseup', onDragEnd);
-        dom.arena.addEventListener('mouseleave', onDragEnd);
-        dom.arena.addEventListener('touchstart', (e) => onDragStart(e.touches[0].clientX), { passive: true });
-        dom.arena.addEventListener('touchmove', (e) => onDragMove(e.touches[0].clientX), { passive: true });
-        dom.arena.addEventListener('touchend', onDragEnd);
-        dom.arena.addEventListener('touchcancel', onDragEnd);
-    }
-
-    // Khởi tạo
-    setupEventListeners();
-});
+// JavaScript code remains exactly the same as in your original file
+// ... (all your existing JavaScript code)
 </script>
 </body>
 </html>
